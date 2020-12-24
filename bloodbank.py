@@ -4,13 +4,43 @@ import pymysql.cursors
 from prettytable import from_db_cursor
 from getpass import getpass
 from datetime import date
+import re
 
 username = ""
 password = ""
 RED = "\033[1;31m"
+GREEN = "\033[1;32m"
 RESET = "\033[m"
 
 
+# ------------------------ REGEX VALIDATION ------------------------
+def validateInput(inp_str, inp_type, opt=False):
+    validator = None
+    if inp_type == "Name":
+        validator = lambda name: re.match("^[A-Za-z]+$", name)
+    elif inp_type == "Number":
+        validator = lambda num: re.match("^\d+$", num)
+    elif inp_type == "Email":
+        validator = lambda email: re.match("^\w+@[A-Za-z]+\.[a-z]+$", email)
+    elif inp_type == "Date":
+        validator = lambda date: re.match("^\d{4}/\d{2}/\d{2}$", date)
+    elif inp_type == "Sex":
+        validator = lambda sex: sex == "M" or sex == "F" or sex == "Other"
+    elif inp_type == "Address":
+        validator = lambda address: re.match("^[ \w]+$", address)
+    elif inp_type == "Blood":
+        validator = lambda b_type: b_type in ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+
+    inp = input(inp_str + ": ")
+    while not validator(inp):
+        if (opt and not inp):
+            return inp
+        print(RED, "Invalid input", RESET, sep="")
+        inp = input(inp_str + ": ")
+    return inp
+
+
+# ------------------------ CONNECT TO DATABASE ------------------------
 def connectToDatabase():
     global db, cursor
     sp.call('clear', shell=True)
@@ -42,20 +72,20 @@ def connectToDatabase():
 def addDonor():
     try:
         donor = {}
-        donor["fname"] = input("First name: ")
-        donor["mname"] = input("Middle name: ")
-        donor["lname"] = input("Last name: ")
+        donor["fname"] = validateInput("First Name", "Name")
+        donor["mname"] = validateInput("Middle Name*", "Name", opt=True)
+        donor["lname"] = validateInput("Last Name", "Name")
 
-        donor["dob"] = input("Date of Birth (YYYY/MM/DD): ")
+        donor["dob"] = validateInput("Date of Birth (YYYY/MM/DD)", "Date")
         year, month, day = map(int, donor["dob"].split("/"))
         if ((date.today() - date(year, month, day)).days // 365) < 18:
             print("Donor must be 18 years or above to donate!")
             return
 
-        donor["eid"] = int(input("Employee ID of Receptionist: "))
-        donor["phoneno"] = input("Phone Number: ")
-        donor["email"] = input("Email ID: ")
-        donor["sex"] = input("Sex (M/F) : ")
+        donor["eid"] = int(validateInput("Employee ID of Receptionist", "Number"))
+        donor["phoneno"] = validateInput("Phone Number", "Number")
+        donor["email"] = validateInput("Email ID", "Email")
+        donor["sex"] = validateInput("Sex (M/F/Other)", "Sex")
 
         SQL_query = "INSERT INTO donor (employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) " \
                     "VALUES({}, '{}', '{}', '{}', '{}', '{}', '{}', '{}', CURDATE())".format(
@@ -65,22 +95,22 @@ def addDonor():
 
         cursor.execute(SQL_query)
         db.commit()
-        print("Insert successful")
+        print(GREEN, "Insert successful", RESET, sep="")
 
     except Exception as e:
         db.rollback()
-        print("Failed to insert into database")
+        print(RED, "Failed to insert into database", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def addReceptionist():
     try:
         receptionist = {}
-        receptionist["fname"] = input("First name: ")
-        receptionist["mname"] = input("Middle name: ")
-        receptionist["lname"] = input("Last name: ")
-        receptionist["cid"] = int(input("Centre ID:  "))
-        receptionist["phoneno"] = input("Phone Number: ")
+        receptionist["fname"] = validateInput("First Name", "Name")
+        receptionist["mname"] = validateInput("Middle Name*", "Name", opt=True)
+        receptionist["lname"] = validateInput("Last Name", "Name")
+        receptionist["cid"] = int(validateInput("Center ID", "Number"))
+        receptionist["phoneno"] = validateInput("Phone Number", "Number")
 
         SQL_query = "INSERT INTO receptionist (center_id, first_name, middle_name, last_name, phone_number) " \
                     "VALUES({}, '{}', '{}', '{}', '{}')".format(
@@ -90,30 +120,30 @@ def addReceptionist():
 
         cursor.execute(SQL_query)
         db.commit()
-        print("Insert successful")
+        print(GREEN, "Insert successful", RESET, sep="")
 
     except Exception as e:
         db.rollback()
-        print("Failed to insert into database")
+        print(RED, "Failed to insert into database", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def addBloodDonationCenter():
     try:
         center = {}
-        center["address"] = input("Address: ")
-        center["phoneno"] = input("Phone Number: ")
+        center["address"] = validateInput("Address", "Address")
+        center["phoneno"] = validateInput("Phone Number", "Number")
 
         SQL_query = "INSERT INTO blood_donation_center (phone_number, address) " \
                     "VALUES('{}', '{}')".format(center["phoneno"], center["address"])
 
         cursor.execute(SQL_query)
         db.commit()
-        print("Successfully inserted into Database")
+        print(GREEN, "Insert successful", RESET, sep="")
 
     except Exception as e:
         db.rollback()
-        print("Insert successful")
+        print(RED, "Failed to insert into database", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -141,7 +171,7 @@ def addBloodDonationCenter():
 #
 #         cursor.execute(SQL_query)
 #         db.commit()
-#         print("Insert successful")
+#         print(GREEN, "Insert successful", RESET, sep="")
 #
 #     except Exception as e:
 #         db.rollback()
@@ -152,7 +182,7 @@ def addBloodDonationCenter():
 # ------------------------ UPDATE QUERIES ------------------------
 def updateDonorDetails():
     try:
-        donor_id = int(input("Donor ID: "))
+        donor_id = int(validateInput("Donor ID", "Number"))
         options = [
             "Update Phone Number",
             "Update Email ID",
@@ -164,48 +194,48 @@ def updateDonorDetails():
         try:
             choice = int(input("Enter choice> "))
         except ValueError:
-            print(RED, "Error: Invalid Choice", RESET, sep="")
+            print(RED, "Invalid Choice", RESET, sep="")
             return
 
         if choice == 1:
-            phone_number = input("New Phone Number: ")
+            phone_number = validateInput("New Phone Number", "Number")
             SQL_query = "UPDATE donor SET phone_number = '{}' WHERE donor_id = {}".format(phone_number, donor_id)
         elif choice == 2:
-            email_id = input("New Email ID: ")
+            email_id = validateInput("New Email ID", "Email")
             SQL_query = "UPDATE donor SET email_id = '{}' WHERE donor_id = {}".format(email_id, donor_id)
         elif choice == 3:
-            address = input("New Address: ")
+            address = validateInput("New Address", "Address")
             SQL_query = "INSERT INTO donor_address (donor_id, address) " \
                         "VALUES ({}, '{}')".format(donor_id, address)
         elif choice == 4:
-            address = input("Address: ")
+            address = validateInput("Address", "Address")
             SQL_query = "DELETE FROM donor_address WHERE donor_id = {} AND address = '{}'".format(donor_id, address)
         else:
             return
 
         cursor.execute(SQL_query)
         db.commit()
-        print("Update Successful")
+        print(GREEN, "Update successful", RESET, sep="")
 
     except Exception as e:
         db.rollback()
-        print("Failed to update database")
+        print(RED, "Failed to update database", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 # ------------------------ DELETION QUERIES ------------------------
 def removeDonor():
     try:
-        donor_id = int(input("Donor ID: "))
+        donor_id = int(validateInput("Donor ID", "Number"))
         SQL_query = "DELETE FROM donor WHERE donor_id = {}".format(donor_id)
 
         cursor.execute(SQL_query)
         db.commit()
-        print("Delete successful")
+        print(GREEN, "Delete successful", RESET, sep="")
 
     except Exception as e:
         db.rollback()
-        print("Failed to delete from database")
+        print(RED, "Failed to delete from database", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -215,11 +245,11 @@ def removeOrderedSamplesFromInventory():
 
         cursor.execute(SQL_query)
         db.commit()
-        print("Delete successful")
+        print(GREEN, "Delete successful", RESET, sep="")
 
     except Exception as e:
         db.rollback()
-        print("Failed to delete from database")
+        print(RED, "Failed to delete from database", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -231,11 +261,11 @@ def removeExpiredSamplesFromInventory():
 
         cursor.execute(SQL_query)
         db.commit()
-        print("Delete successful")
+        print(GREEN, "Delete successful", RESET, sep="")
 
     except Exception as e:
         db.rollback()
-        print("Failed to delete from database")
+        print(RED, "Failed to delete from database", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -252,7 +282,7 @@ def getDonorDetails():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -266,13 +296,13 @@ def generateBloodInventoryReport():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDailyOrders():
     try:
-        date = input("Date (YYYY/MM/DD): ")
+        date = validateInput("Date (YYYY/MM/DD)", "Date")
         SQL_query = "SELECT * FROM orders WHERE date_of_order = '{}'".format(date)
 
         cursor.execute(SQL_query)
@@ -281,13 +311,14 @@ def getDailyOrders():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsByAge():
     try:
-        lower_age, upper_age = map(int, input("Lower and Upper Ages: ").split())
+        lower_age = int(validateInput("Lower Age", "Number"))
+        upper_age = int(validateInput("Upper Age", "Number"))
         SQL_query = "SELECT * FROM donor WHERE TIMESTAMPDIFF(year, date_of_birth, CURDATE()) BETWEEN {} AND {}".format(
             lower_age, upper_age)
 
@@ -297,7 +328,7 @@ def getDonorsByAge():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -316,7 +347,7 @@ def findCommonlyOrderedBloodTypes():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -335,7 +366,7 @@ def findTotalStock():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -352,13 +383,13 @@ def getDonorsFromArea():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsFromBloodType():
     try:
-        blood_type = input("Blood Type: ")
+        blood_type = validateInput("Blood Type ([ABO][+-])", "Blood")
         SQL_query = "SELECT DISTINCT donor.* FROM donor " \
                     "JOIN donor_participation ON donor.donor_id = donor_participation.donor_id " \
                     "JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode " \
@@ -370,7 +401,7 @@ def getDonorsFromBloodType():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -392,13 +423,13 @@ def getDonorsFromTestResults():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsFromEmployee():
     try:
-        employee_id = int(input("Employee ID: "))
+        employee_id = int(validateInput("Employee ID", "Number"))
         SQL_query = "SELECT * FROM donor WHERE employee_id = {}".format(employee_id)
 
         cursor.execute(SQL_query)
@@ -407,13 +438,13 @@ def getDonorsFromEmployee():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsRegisteredAtCenter():
     try:
-        center_id = int(input("Center ID: "))
+        center_id = int(validateInput("Center ID", "Number"))
         SQL_query = "SELECT donor.* FROM donor " \
                     "JOIN receptionist ON donor.employee_id = receptionist.employee_id " \
                     "JOIN blood_donation_center ON receptionist.center_id = blood_donation_center.center_id " \
@@ -425,13 +456,13 @@ def getDonorsRegisteredAtCenter():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsDonatedAtCenter():
     try:
-        center_id = int(input("Center ID: "))
+        center_id = int(validateInput("Center ID", "Number"))
         SQL_query = "SELECT DISTINCT donor.* FROM donor " \
                     "JOIN donor_participation ON donor.donor_id = donor_participation.donor_id " \
                     "JOIN blood_donation_center ON donor_participation.center_id = blood_donation_center.center_id " \
@@ -443,7 +474,7 @@ def getDonorsDonatedAtCenter():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
@@ -459,7 +490,7 @@ def findExpiredBlood():
         print(table)
 
     except Exception as e:
-        print("Query failed")
+        print(RED, "Query failed", RESET, sep="")
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
