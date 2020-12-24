@@ -104,4 +104,3 @@ DELETE FROM blood_inventory WHERE order_id IS NOT NULL;
 DELETE blood_inventory FROM blood_inventory
     JOIN component ON blood_inventory.component_id = component.component_id
 WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE();
-
