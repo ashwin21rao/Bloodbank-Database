@@ -20,3 +20,8 @@ stages in the blood donation process. Functions of the database are described in
 - Run ```mysql -u <username> -p < SQL/schema.sql``` to create the database.
 - Type ```python3 bloodbank.sql``` to start the CLI. You will be prompted to enter username and password before the 
   CLI starts.
+  
+## General Instructions
+
+- The username and password entered to start the CLI must be the same as those used to create the database.
+- The fields in the CLI marked with ```*``` are optional. These can be skipped by pressing ```ENTER```.
