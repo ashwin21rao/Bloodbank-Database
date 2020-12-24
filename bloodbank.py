@@ -2,10 +2,13 @@ import subprocess as sp
 import pymysql
 import pymysql.cursors
 from prettytable import from_db_cursor
+from getpass import getpass
 from datetime import date
 
-username = "ashwin"
-password = "ashwin"
+username = ""
+password = ""
+RED = "\033[1;31m"
+RESET = "\033[m"
 
 
 def connectToDatabase():
@@ -13,23 +16,26 @@ def connectToDatabase():
     sp.call('clear', shell=True)
 
     try:
+        username = input("Username: ")
+        password = getpass("Password: ")
         db = pymysql.connect(host='localhost',
                              user=username,
                              password=password,
                              db='bloodbank')
         sp.call('clear', shell=True)
-
+        if db.open:
+            print("Connected")
+        else:
+            print("Failed to connect")
     except Exception:
         sp.call('clear', shell=True)
-        print("Connection Refused: Either username or password is incorrect or user doesn't have access to database")
+        print(RED,
+              "Connection Refused: Either username or password is incorrect or user doesn't have access to database",
+              RESET, sep="")
         tmp = input("Enter Q to quit, any other key to continue>")
         if tmp == 'Q':
             return
         connectToDatabase()
-    if db.open:
-        print("Connected")
-    else:
-        print("Failed to connect")
 
 
 # ------------------------ INSERTION QUERIES ------------------------
@@ -53,10 +59,10 @@ def addDonor():
 
         SQL_query = "INSERT INTO donor (employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) " \
                     "VALUES({}, '{}', '{}', '{}', '{}', '{}', '{}', '{}', CURDATE())".format(
-                        donor["eid"], donor["fname"], donor["mname"], donor["lname"], donor["phoneno"], donor["email"], donor["dob"], donor["sex"]
-                    )
+            donor["eid"], donor["fname"], donor["mname"], donor["lname"], donor["phoneno"], donor["email"],
+            donor["dob"], donor["sex"]
+        )
 
-        print(SQL_query)
         cursor.execute(SQL_query)
         db.commit()
         print("Insert successful")
@@ -64,7 +70,7 @@ def addDonor():
     except Exception as e:
         db.rollback()
         print("Failed to insert into database")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def addReceptionist():
@@ -78,10 +84,10 @@ def addReceptionist():
 
         SQL_query = "INSERT INTO receptionist (center_id, first_name, middle_name, last_name, phone_number) " \
                     "VALUES({}, '{}', '{}', '{}', '{}')".format(
-                        receptionist["cid"], receptionist["fname"], receptionist["mname"], receptionist["lname"], receptionist["phoneno"]
-                    )
+            receptionist["cid"], receptionist["fname"], receptionist["mname"], receptionist["lname"],
+            receptionist["phoneno"]
+        )
 
-        print(SQL_query)
         cursor.execute(SQL_query)
         db.commit()
         print("Insert successful")
@@ -89,7 +95,7 @@ def addReceptionist():
     except Exception as e:
         db.rollback()
         print("Failed to insert into database")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def addBloodDonationCenter():
@@ -101,7 +107,6 @@ def addBloodDonationCenter():
         SQL_query = "INSERT INTO blood_donation_center (phone_number, address) " \
                     "VALUES('{}', '{}')".format(center["phoneno"], center["address"])
 
-        print(SQL_query)
         cursor.execute(SQL_query)
         db.commit()
         print("Successfully inserted into Database")
@@ -109,7 +114,7 @@ def addBloodDonationCenter():
     except Exception as e:
         db.rollback()
         print("Insert successful")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 # def addDonation():
@@ -134,7 +139,6 @@ def addBloodDonationCenter():
 #         SQL_query = "INSERT INTO blood_inventory (blood_barcode, component_id, date_of_storage)" \
 #                     "VALUES ({}, {}, '{}')".format(inventory["bldbarcode"], inventory["compid"], inventory["dateofstorage"])
 #
-#         print(SQL_query)
 #         cursor.execute(SQL_query)
 #         db.commit()
 #         print("Insert successful")
@@ -142,7 +146,7 @@ def addBloodDonationCenter():
 #     except Exception as e:
 #         db.rollback()
 #         print("Failed to insert into database")
-#         print("Error >>>>>>>>>>>>>", e)
+#         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 # ------------------------ UPDATE QUERIES ------------------------
@@ -160,7 +164,7 @@ def updateDonorDetails():
         try:
             choice = int(input("Enter choice> "))
         except ValueError:
-            print("Error: Invalid Choice")
+            print(RED, "Error: Invalid Choice", RESET, sep="")
             return
 
         if choice == 1:
@@ -179,7 +183,6 @@ def updateDonorDetails():
         else:
             return
 
-        print(SQL_query)
         cursor.execute(SQL_query)
         db.commit()
         print("Update Successful")
@@ -187,7 +190,7 @@ def updateDonorDetails():
     except Exception as e:
         db.rollback()
         print("Failed to update database")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 # ------------------------ DELETION QUERIES ------------------------
@@ -196,7 +199,6 @@ def removeDonor():
         donor_id = int(input("Donor ID: "))
         SQL_query = "DELETE FROM donor WHERE donor_id = {}".format(donor_id)
 
-        print(SQL_query)
         cursor.execute(SQL_query)
         db.commit()
         print("Delete successful")
@@ -204,14 +206,13 @@ def removeDonor():
     except Exception as e:
         db.rollback()
         print("Failed to delete from database")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def removeOrderedSamplesFromInventory():
     try:
         SQL_query = "DELETE FROM blood_inventory WHERE order_id IS NOT NULL"
 
-        print(SQL_query)
         cursor.execute(SQL_query)
         db.commit()
         print("Delete successful")
@@ -219,7 +220,7 @@ def removeOrderedSamplesFromInventory():
     except Exception as e:
         db.rollback()
         print("Failed to delete from database")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def removeExpiredSamplesFromInventory():
@@ -228,7 +229,6 @@ def removeExpiredSamplesFromInventory():
                     "JOIN component ON blood_inventory.component_id = component.component_id " \
                     "WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE()"
 
-        print(SQL_query)
         cursor.execute(SQL_query)
         db.commit()
         print("Delete successful")
@@ -236,7 +236,7 @@ def removeExpiredSamplesFromInventory():
     except Exception as e:
         db.rollback()
         print("Failed to delete from database")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 # ------------------------ SELECTION QUERIES ------------------------
@@ -253,7 +253,7 @@ def getDonorDetails():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def generateBloodInventoryReport():
@@ -267,7 +267,7 @@ def generateBloodInventoryReport():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDailyOrders():
@@ -282,13 +282,14 @@ def getDailyOrders():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsByAge():
     try:
         lower_age, upper_age = map(int, input("Lower and Upper Ages: ").split())
-        SQL_query = "SELECT * FROM donor WHERE TIMESTAMPDIFF(year, date_of_birth, CURDATE()) BETWEEN {} AND {}".format(lower_age, upper_age)
+        SQL_query = "SELECT * FROM donor WHERE TIMESTAMPDIFF(year, date_of_birth, CURDATE()) BETWEEN {} AND {}".format(
+            lower_age, upper_age)
 
         cursor.execute(SQL_query)
         table = from_db_cursor(cursor)
@@ -297,7 +298,7 @@ def getDonorsByAge():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def findCommonlyOrderedBloodTypes():
@@ -316,7 +317,7 @@ def findCommonlyOrderedBloodTypes():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def findTotalStock():
@@ -335,7 +336,7 @@ def findTotalStock():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsFromArea():
@@ -352,12 +353,12 @@ def getDonorsFromArea():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsFromBloodType():
     try:
-        blood_type = input("Blood Type: " )
+        blood_type = input("Blood Type: ")
         SQL_query = "SELECT DISTINCT donor.* FROM donor " \
                     "JOIN donor_participation ON donor.donor_id = donor_participation.donor_id " \
                     "JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode " \
@@ -370,7 +371,7 @@ def getDonorsFromBloodType():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsFromTestResults():
@@ -380,10 +381,10 @@ def getDonorsFromTestResults():
                     "JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode " \
                     "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
                     "WHERE " \
-                        "test_result.hiv1 + test_result.hiv2 + " \
-                        "test_result.hepatitis_b + test_result.hepatitis_c + " \
-                        "test_result.htlv1 + test_result.htlv2 + " \
-                        "test_result.syphilis = 0"
+                    "test_result.hiv1 + test_result.hiv2 + " \
+                    "test_result.hepatitis_b + test_result.hepatitis_c + " \
+                    "test_result.htlv1 + test_result.htlv2 + " \
+                    "test_result.syphilis = 0"
 
         cursor.execute(SQL_query)
         table = from_db_cursor(cursor)
@@ -392,7 +393,7 @@ def getDonorsFromTestResults():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsFromEmployee():
@@ -407,7 +408,7 @@ def getDonorsFromEmployee():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsRegisteredAtCenter():
@@ -425,7 +426,7 @@ def getDonorsRegisteredAtCenter():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def getDonorsDonatedAtCenter():
@@ -443,7 +444,7 @@ def getDonorsDonatedAtCenter():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 def findExpiredBlood():
@@ -459,7 +460,7 @@ def findExpiredBlood():
 
     except Exception as e:
         print("Query failed")
-        print("Error >>>>>>>>>>>>>", e)
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 # ------------------------ COMMAND LINE INTERFACE ------------------------
@@ -495,7 +496,7 @@ def loop():
         try:
             choice = int(input("Enter choice> "))
         except ValueError:
-            print("Error: Invalid Choice")
+            print(RED, "Error: Invalid Choice", RESET, sep="")
             continue
 
         sp.call('clear', shell=True)
@@ -544,11 +545,12 @@ def loop():
             elif choice == 20:
                 removeExpiredSamplesFromInventory()
             else:
-                print("Error: Invalid Choice")
-            input("Enter any key to CONTINUE> ")
+                print(RED, "Error: Invalid Choice", RESET, sep="")
+            input("Press Enter to CONTINUE> ")
 
 
-db = pymysql.connections.Connection(user=username, password=password)
+db = None
+cursor = None
 connectToDatabase()
 if db is None:
     exit(1)
