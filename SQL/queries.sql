@@ -3,7 +3,8 @@
 # SELECTTION QUERIES
 SELECT DISTINCT donor.donor_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, blood_type FROM donor 
     JOIN donor_participation ON donor.donor_id = donor_participation.donor_id
-    JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode;
+    JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode
+    JOIN test_result ON blood.blood_barcode = test_result.blood_barcode;
 
 SELECT * FROM blood_inventory ORDER BY date_of_storage;
 
@@ -18,6 +19,7 @@ SELECT * FROM donor WHERE TIMESTAMPDIFF(year, date_of_birth, CURDATE()) BETWEEN 
 SELECT blood_type, component_type, COUNT(*) AS total_orders FROM blood_inventory
     JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode
     JOIN component ON blood_inventory.component_id = component.component_id
+    JOIN test_result ON blood.blood_barcode = test_result.blood_barcode
 WHERE order_id IS NOT NULL
 GROUP BY blood_type, component_type
 ORDER BY total_orders DESC;
@@ -25,6 +27,7 @@ ORDER BY total_orders DESC;
 SELECT blood_type, component_type, COUNT(*) AS total_stock FROM blood_inventory
     JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode
     JOIN component ON blood_inventory.component_id = component.component_id
+    JOIN test_result ON blood.blood_barcode = test_result.blood_barcode
 WHERE order_id IS NULL
 GROUP BY blood_type, component_type
 ORDER BY total_stock DESC;
@@ -40,6 +43,7 @@ WHERE donor_address.address LIKE CONCAT('%', 'bangalore', '%');
 SELECT DISTINCT donor.* FROM donor 
     JOIN donor_participation ON donor.donor_id = donor_participation.donor_id
     JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode
+    JOIN test_result ON blood.blood_barcode = test_result.blood_barcode
 WHERE blood_type = 'B+';
 
 SELECT DISTINCT donor.* FROM donor 
@@ -87,7 +91,6 @@ VALUES (
     114, 3, "2020/08/06"
 );
 
-
 # UPDATE QUERIES
 UPDATE donor SET phone_number = "8890096331" WHERE donor_id = 1;
 UPDATE donor SET email_id = "johndoe&gmail.com" WHERE donor_id = 1;
@@ -104,3 +107,12 @@ DELETE FROM blood_inventory WHERE order_id IS NOT NULL;
 DELETE blood_inventory FROM blood_inventory
     JOIN component ON blood_inventory.component_id = component.component_id
 WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE();
+
+
+# EXTRA QUERIES
+
+INSERT INTO donation (blood_pressure, haemoglobin_level, date_of_donation, weight, travel_history)
+VALUES (
+    "120/90", 15, CURDATE(), 70, "No recent travels"
+);
+

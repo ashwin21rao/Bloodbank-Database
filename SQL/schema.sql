@@ -50,7 +50,7 @@ CREATE TABLE `donation` (
   `haemoglobin_level` varchar(10) NOT NULL,
   `date_of_donation` date NOT NULL,
   `weight` decimal NOT NULL,
-  `travel_history` varchar(255) NOT NULL,
+  `travel_history` varchar(255),
   PRIMARY KEY (`donation_id`)
 );
 
@@ -62,10 +62,9 @@ CREATE TABLE `blood_cost` (
 
 CREATE TABLE `blood` (
   `blood_barcode` int AUTO_INCREMENT,
-  `blood_type` varchar(20) NOT NULL,
   `description` varchar(255),
-  PRIMARY KEY (`blood_barcode`),
-  FOREIGN KEY (`blood_type`) REFERENCES `blood_cost` (`blood_type`) ON DELETE CASCADE
+  `healthy` bool,
+  PRIMARY KEY (`blood_barcode`)
 );
 
 CREATE TABLE `donor_participation` (
@@ -82,6 +81,7 @@ CREATE TABLE `donor_participation` (
 
 CREATE TABLE `test_result` (
   `blood_barcode` int,
+  `blood_type` varchar(20) NOT NULL,
   `hiv1` bool NOT NULL,
   `hiv2` bool NOT NULL,
   `hepatitis_b` bool NOT NULL,
@@ -90,7 +90,8 @@ CREATE TABLE `test_result` (
   `htlv2` bool NOT NULL,
   `syphilis` bool NOT NULL,
   PRIMARY KEY (`blood_barcode`),
-  FOREIGN KEY (`blood_barcode`) REFERENCES `blood` (`blood_barcode`) ON DELETE CASCADE
+  FOREIGN KEY (`blood_barcode`) REFERENCES `blood` (`blood_barcode`) ON DELETE CASCADE,
+  FOREIGN KEY (`blood_type`) REFERENCES `blood_cost` (`blood_type`) ON DELETE CASCADE
 );
 
 CREATE TABLE `component` (
@@ -169,6 +170,12 @@ INSERT into donation (blood_pressure, haemoglobin_level, date_of_donation, weigh
 INSERT into donation (blood_pressure, haemoglobin_level, date_of_donation, weight, travel_history) values ("110/67", "14.12", "2020-08-30", "46", "travel to antarctica");
 INSERT into donation (blood_pressure, haemoglobin_level, date_of_donation, weight, travel_history) values ("119/77", "13.92", "2020-09-20", "20", "travel to white house");
 
+INSERT into blood (healthy) values ("Negative");
+INSERT into blood (healthy) values ("Negative");
+INSERT into blood (healthy) values ("Negative");
+INSERT into blood (healthy) values ("Negative");
+INSERT into blood (healthy) values ("Negative");
+
 INSERT into blood_cost (blood_type, blood_type_cost) values ("A+", 220);
 INSERT into blood_cost (blood_type, blood_type_cost) values ("B+", 210);
 INSERT into blood_cost (blood_type, blood_type_cost) values ("O+", 200);
@@ -178,23 +185,17 @@ INSERT into blood_cost (blood_type, blood_type_cost) values ("O-", 200);
 INSERT into blood_cost (blood_type, blood_type_cost) values ("AB+", 250);
 INSERT into blood_cost (blood_type, blood_type_cost) values ("AB-", 250);
 
-INSERT into blood (blood_type) values ("B+");
-INSERT into blood (blood_type) values ("A+");
-INSERT into blood (blood_type) values ("A-");
-INSERT into blood (blood_type) values ("O+");
-INSERT into blood (blood_type) values ("A-");
-
 INSERT into donor_participation (blood_barcode, donor_id, center_id, donation_id) values (1, 1, 2, 1);
 INSERT into donor_participation (blood_barcode, donor_id, center_id, donation_id) values (2, 2, 1, 2);
 INSERT into donor_participation (blood_barcode, donor_id, center_id, donation_id) values (3, 3, 1, 3);
 INSERT into donor_participation (blood_barcode, donor_id, center_id, donation_id) values (4, 4, 3, 4);
 INSERT into donor_participation (blood_barcode, donor_id, center_id, donation_id) values (5, 3, 1, 5);
 
-INSERT into test_result (blood_barcode, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (1, false, false, false, false, false, false, false);
-INSERT into test_result (blood_barcode, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (2, false, false, false, false, false, false, false);
-INSERT into test_result (blood_barcode, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (3, false, false, false, false, false, false, false);
-INSERT into test_result (blood_barcode, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (4, false, false, false, false, false, false, false);
-INSERT into test_result (blood_barcode, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (5, false, false, false, false, false, false, false);
+INSERT into test_result (blood_barcode, blood_type, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (1, "B+", false, false, false, false, false, false, false);
+INSERT into test_result (blood_barcode, blood_type, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (2, "A+", false, false, false, false, false, false, false);
+INSERT into test_result (blood_barcode, blood_type, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (3, "A-", false, false, false, false, false, false, false);
+INSERT into test_result (blood_barcode, blood_type, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (4, "O+", false, false, false, false, false, false, false);
+INSERT into test_result (blood_barcode, blood_type, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv2, htlv1, syphilis) values (5, "A-", false, false, false, false, false, false, false);
 
 INSERT into component (component_type, standard_quantity, storage_temperature, max_storage_duration) values ("RBC", 10, 6, 42);
 INSERT into component (component_type, standard_quantity, storage_temperature, max_storage_duration) values ("Platelets", 20, 25, 5);
@@ -238,4 +239,3 @@ INSERT into blood_inventory (blood_barcode, component_id, order_id, date_of_stor
 INSERT into blood_inventory (blood_barcode, component_id, order_id, date_of_storage) values (5, 1, 4, "2020-09-26");
 INSERT into blood_inventory (blood_barcode, component_id, order_id, date_of_storage) values (5, 2, NULL, "2020-09-26");
 INSERT into blood_inventory (blood_barcode, component_id, order_id, date_of_storage) values (5, 3, NULL, "2020-09-26");
-

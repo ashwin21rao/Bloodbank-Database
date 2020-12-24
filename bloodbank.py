@@ -18,8 +18,12 @@ def validateInput(inp_str, inp_type, opt=False):
     validator = None
     if inp_type == "Name":
         validator = lambda name: re.match("^[A-Za-z]+$", name)
-    elif inp_type == "Number":
-        validator = lambda num: re.match("^\d+$", num)
+    elif inp_type == "Integer":
+        validator = lambda num: num.isdigit()
+    elif inp_type == "Float":
+        validator = lambda num: num.replace(".", "", 1).isdigit()
+    elif inp_type == "Bool":
+        validator = lambda bool: bool == "true"
     elif inp_type == "Email":
         validator = lambda email: re.match("^\w+@[A-Za-z]+\.[a-z]+$", email)
     elif inp_type == "Date":
@@ -30,6 +34,9 @@ def validateInput(inp_str, inp_type, opt=False):
         validator = lambda address: re.match("^[ \w]+$", address)
     elif inp_type == "Blood":
         validator = lambda b_type: b_type in ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+    elif inp_type == "BP":
+        validator = lambda bp: re.match("^\d{2, 3}/\d{2, 3}$", bp)
+
 
     inp = input(inp_str + ": ")
     while not validator(inp):
@@ -82,8 +89,8 @@ def addDonor():
             print("Donor must be 18 years or above to donate!")
             return
 
-        donor["eid"] = int(validateInput("Employee ID of Receptionist", "Number"))
-        donor["phoneno"] = validateInput("Phone Number", "Number")
+        donor["eid"] = int(validateInput("Employee ID of Receptionist", "Integer"))
+        donor["phoneno"] = validateInput("Phone Number", "Integer")
         donor["email"] = validateInput("Email ID", "Email")
         donor["sex"] = validateInput("Sex (M/F/Other)", "Sex")
 
@@ -109,13 +116,13 @@ def addReceptionist():
         receptionist["fname"] = validateInput("First Name", "Name")
         receptionist["mname"] = validateInput("Middle Name*", "Name", opt=True)
         receptionist["lname"] = validateInput("Last Name", "Name")
-        receptionist["cid"] = int(validateInput("Center ID", "Number"))
-        receptionist["phoneno"] = validateInput("Phone Number", "Number")
+        receptionist["cid"] = int(validateInput("Center ID", "Integer"))
+        receptionist["phoneno"] = validateInput("Phone Number", "Integer")
 
         SQL_query = "INSERT INTO receptionist (center_id, first_name, middle_name, last_name, phone_number) " \
                     "VALUES({}, '{}', '{}', '{}', '{}')".format(
-            receptionist["cid"], receptionist["fname"], receptionist["mname"], receptionist["lname"],
-            receptionist["phoneno"]
+                        receptionist["cid"], receptionist["fname"], receptionist["mname"], receptionist["lname"],
+                        receptionist["phoneno"]
         )
 
         cursor.execute(SQL_query)
@@ -132,7 +139,7 @@ def addBloodDonationCenter():
     try:
         center = {}
         center["address"] = validateInput("Address", "Address")
-        center["phoneno"] = validateInput("Phone Number", "Number")
+        center["phoneno"] = validateInput("Phone Number", "Integer")
 
         SQL_query = "INSERT INTO blood_donation_center (phone_number, address) " \
                     "VALUES('{}', '{}')".format(center["phoneno"], center["address"])
@@ -147,42 +154,154 @@ def addBloodDonationCenter():
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
-# def addDonation():
-#     pass
-#
-#
-# def addBlood():
-#     pass
-#
-#
-# def addTestResult():
-#     pass
-#
-#
-# def addToInventory():
-#     try:
-#         inventory = {}
-#         inventory["bldbarcode"] = int(input("Blood Barcode: "))
-#         inventory["compid"] = int(input("Component ID: "))
-#         inventory["dateofstorage"] = input("Date of Storage: ")
-#
-#         SQL_query = "INSERT INTO blood_inventory (blood_barcode, component_id, date_of_storage)" \
-#                     "VALUES ({}, {}, '{}')".format(inventory["bldbarcode"], inventory["compid"], inventory["dateofstorage"])
-#
-#         cursor.execute(SQL_query)
-#         db.commit()
-#         print(GREEN, "Insert successful", RESET, sep="")
-#
-#     except Exception as e:
-#         db.rollback()
-#         print("Failed to insert into database")
-#         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
+def addDonation():
+    try:
+        donor_id = int(validateInput("Donor ID", "Integer"))
+        center_id = int(validateInput("Center ID", "Integer"))
+
+        SQL_query = "SELECT gender FROM donor WHERE donor_id = '{}'".format(donor_id)
+        dict_cursor.execute(SQL_query)
+        sex = dict_cursor.fetchone()["gender"]
+
+        donation = {}
+        donation["bp"] = validateInput("Blood Pressure (systolic/diastolic)", "BP")
+        sys, dia = map(int, donation["bp"].split("/"))
+        if sys > 180 or dia > 100:
+            print("Blood pressure must be below 180 (systolic) and 100 (diastolic) to donate")
+            return
+
+        donation["haem"] = float(validateInput("Haemoglobin Level (g/dl)", "Float"))
+        if donation["haem"] > 20:
+            print("Haemoglobin level must be below 20 g/dl to donate")
+            return
+        if sex == 'M' and donation["haem"] < 13:
+            print("Haemoglobin level must be above 13 g/dl to donate")
+            return
+        if sex == 'F' and donation["haem"] < 12.5:
+            print("Haemoglobin level must be above 12.5 g/dl to donate")
+            return
+
+        donation["weight"] = float(validateInput("Weight (kg)", "Float"))
+        if(donation["weight"] < 50):
+            print("Weight must be greater than 50kg to donate")
+            return
+
+        donation["travelhist"] = input("Travel History*: ")
+
+        SQL_query = "INSERT INTO donation (blood_pressure, haemoglobin_level, date_of_donation, weight, travel_history) " \
+                    "VALUES ('{}', {}, CURDATE(), {}, '{}');".format(
+                        donation["bp"], donation["haem"], donation["weight"], donation["travelhist"]
+                    )
+
+        cursor.execute(SQL_query)
+        db.commit()
+        print(GREEN, "Insert successful", RESET, sep="")
+
+        # Insert into blood
+        blood = {}
+        blood["description"] = input("Blood Description*: ")
+        SQL_query = "INSERT INTO blood (description, test_result) VALUES ('{}', 'Pending')".format(blood["description"])
+        cursor.execute(SQL_query)
+        db.commit()
+
+        # Insert into donor participation
+        donor_participation = {}
+        donor_participation["donor_id"] = donor_id
+        donor_participation["center_id"] = center_id
+
+        SQL_query = "SELECT MAX(donation_id) AS 'max' FROM donation"
+        dict_cursor.execute(SQL_query)
+        donor_participation["donation_id"] = dict_cursor.fetchone()["max"]
+
+        SQL_query = "SELECT MAX(blood_barcode) AS 'max' FROM blood"
+        dict_cursor.execute(SQL_query)
+        donor_participation["barcode"] = dict_cursor.fetchone()["max"]
+
+        SQL_query = "INSERT INTO donor_participation (blood_barcode, donor_id, center_id, donation_id) " \
+                    "VALUES ({}, {}, {}, {})".format(
+                        donor_participation["barcode"], donor_participation["donor_id"], donor_participation["center_id"],
+                        donor_participation["donation_id"]
+        )
+        cursor.execute(SQL_query)
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        print(RED, "Failed to insert into database", RESET, sep="")
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
+
+
+def addTestResult():
+    try:
+        blood_barcode = int(validateInput("Blood Barcode", "Integer"))
+
+        result = {}
+        result["blood_type"] = validateInput("Blood Type", "Blood")
+        result["hiv1"] = validateInput("HIV 1 (true/false)", "Bool") == "true"
+        result["hiv2"] = validateInput("HIV 2 (true/false)", "Bool") == "true"
+        result["hepatitis_b"] = validateInput("Hepatitis B (true/false)", "Bool") == "true"
+        result["hepatitis_c"] = validateInput("Hepatitis C (true/false)", "Bool") == "true"
+        result["htlv1"] = validateInput("HTLV 1 (true/false)", "Bool") == "true"
+        result["htlv2"] = validateInput("HTLV 2 (true/false)", "Bool") == "true"
+        result["syphilis"] = validateInput("Syphilis (true/false)", "Bool") == "true"
+
+        SQL_query = "INSERT INTO test_result VALUES (blood_barcode, blood_type, hiv1, hiv2, hepatitis_b, hepatitis_c, htlv1, htlv2, syphilis) " \
+                    "VALUES ({}, '{}', {}, {}, {}, {}, {}, {}, {})".format(
+                        blood_barcode, result["blood_type"], result["hiv1"], result["hiv2"], result["hepatitis_b"],
+                        result["hepatitis_c"], result["htlv1"], result["htlv2"], result["syphilis"]
+        )
+
+        cursor.execute(SQL_query)
+        db.commit()
+        print(GREEN, "Insert successful", RESET, sep="")
+
+        # Update blood table
+        SQL_query = "UPDATE blood SET test_result = '{}' WHERE blood.blood_barcode = {}".format(
+            "Positive" if True in result.values() else "Negative", blood_barcode
+        )
+        cursor.execute(SQL_query)
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        print(RED, "Failed to insert into database", RESET, sep="")
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
+
+
+def addToInventory():
+    try:
+        inventory = {}
+        inventory["barcode"] = int(validateInput("Blood Barcode", "Integer"))
+        inventory["comp_id"] = int(validateInput("Component ID", "Integer"))
+        inventory["storage_date"] = validateInput("Date of Storage (YYYY/MM/DD)", "Date")
+
+        # Check if tests are negative
+        SQL_query = "SELECT test_result FROM blood WHERE blood.blood_barcode = {}".format(inventory["barcode"])
+        dict_cursor.execute(SQL_query)
+        if dict_cursor.fetchone()["test_result"] == "Positive":
+            print("Blood is unhealthy, cannot store in inventory")
+            return
+        elif dict_cursor.fetchone()["test_result"] == "Pending":
+            print("Blood can be stored only after test results are released")
+            return
+        
+        SQL_query = "INSERT INTO blood_inventory (blood_barcode, component_id, date_of_storage)" \
+                    "VALUES ({}, {}, '{}')".format(inventory["barcode"], inventory["comp_id"], inventory["storage_date"])
+
+        cursor.execute(SQL_query)
+        db.commit()
+        print(GREEN, "Insert successful", RESET, sep="")
+
+    except Exception as e:
+        db.rollback()
+        print("Failed to insert into database")
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
 # ------------------------ UPDATE QUERIES ------------------------
 def updateDonorDetails():
     try:
-        donor_id = int(validateInput("Donor ID", "Number"))
+        donor_id = int(validateInput("Donor ID", "Integer"))
         options = [
             "Update Phone Number",
             "Update Email ID",
@@ -198,7 +317,7 @@ def updateDonorDetails():
             return
 
         if choice == 1:
-            phone_number = validateInput("New Phone Number", "Number")
+            phone_number = validateInput("New Phone Number", "Integer")
             SQL_query = "UPDATE donor SET phone_number = '{}' WHERE donor_id = {}".format(phone_number, donor_id)
         elif choice == 2:
             email_id = validateInput("New Email ID", "Email")
@@ -226,7 +345,7 @@ def updateDonorDetails():
 # ------------------------ DELETION QUERIES ------------------------
 def removeDonor():
     try:
-        donor_id = int(validateInput("Donor ID", "Number"))
+        donor_id = int(validateInput("Donor ID", "Integer"))
         SQL_query = "DELETE FROM donor WHERE donor_id = {}".format(donor_id)
 
         cursor.execute(SQL_query)
@@ -274,7 +393,8 @@ def getDonorDetails():
     try:
         SQL_query = "SELECT DISTINCT donor.donor_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, blood_type FROM donor " \
                     "JOIN donor_participation ON donor.donor_id = donor_participation.donor_id " \
-                    "JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode"
+                    "JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode " \
+                    "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode"
 
         cursor.execute(SQL_query)
         table = from_db_cursor(cursor)
@@ -317,8 +437,8 @@ def getDailyOrders():
 
 def getDonorsByAge():
     try:
-        lower_age = int(validateInput("Lower Age", "Number"))
-        upper_age = int(validateInput("Upper Age", "Number"))
+        lower_age = int(validateInput("Lower Age", "Integer"))
+        upper_age = int(validateInput("Upper Age", "Integer"))
         SQL_query = "SELECT * FROM donor WHERE TIMESTAMPDIFF(year, date_of_birth, CURDATE()) BETWEEN {} AND {}".format(
             lower_age, upper_age)
 
@@ -337,6 +457,7 @@ def findCommonlyOrderedBloodTypes():
         SQL_query = "SELECT blood_type, component_type, COUNT(*) AS total_orders FROM blood_inventory " \
                     "JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode " \
                     "JOIN component ON blood_inventory.component_id = component.component_id " \
+                    "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
                     "WHERE order_id IS NOT NULL " \
                     "GROUP BY blood_type, component_type " \
                     "ORDER BY total_orders DESC"
@@ -356,6 +477,7 @@ def findTotalStock():
         SQL_query = "SELECT blood_type, component_type, COUNT(*) AS total_stock FROM blood_inventory " \
                     "JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode " \
                     "JOIN component ON blood_inventory.component_id = component.component_id " \
+                    "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
                     "WHERE order_id IS NULL " \
                     "GROUP BY blood_type, component_type " \
                     "ORDER BY total_stock DESC"
@@ -393,6 +515,7 @@ def getDonorsFromBloodType():
         SQL_query = "SELECT DISTINCT donor.* FROM donor " \
                     "JOIN donor_participation ON donor.donor_id = donor_participation.donor_id " \
                     "JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode " \
+                    "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
                     "WHERE blood_type = '{}'".format(blood_type)
 
         cursor.execute(SQL_query)
@@ -429,7 +552,7 @@ def getDonorsFromTestResults():
 
 def getDonorsFromEmployee():
     try:
-        employee_id = int(validateInput("Employee ID", "Number"))
+        employee_id = int(validateInput("Employee ID", "Integer"))
         SQL_query = "SELECT * FROM donor WHERE employee_id = {}".format(employee_id)
 
         cursor.execute(SQL_query)
@@ -444,7 +567,7 @@ def getDonorsFromEmployee():
 
 def getDonorsRegisteredAtCenter():
     try:
-        center_id = int(validateInput("Center ID", "Number"))
+        center_id = int(validateInput("Center ID", "Integer"))
         SQL_query = "SELECT donor.* FROM donor " \
                     "JOIN receptionist ON donor.employee_id = receptionist.employee_id " \
                     "JOIN blood_donation_center ON receptionist.center_id = blood_donation_center.center_id " \
@@ -462,7 +585,7 @@ def getDonorsRegisteredAtCenter():
 
 def getDonorsDonatedAtCenter():
     try:
-        center_id = int(validateInput("Center ID", "Number"))
+        center_id = int(validateInput("Center ID", "Integer"))
         SQL_query = "SELECT DISTINCT donor.* FROM donor " \
                     "JOIN donor_participation ON donor.donor_id = donor_participation.donor_id " \
                     "JOIN blood_donation_center ON donor_participation.center_id = blood_donation_center.center_id " \
@@ -582,9 +705,11 @@ def loop():
 
 db = None
 cursor = None
+dict_cursor = None
 connectToDatabase()
 if db is None:
     exit(1)
 else:
     cursor = db.cursor()
+    dict_cursor = db.cursor(pymysql.cursors.DictCursor)
     loop()
