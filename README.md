@@ -14,7 +14,7 @@ blood components, stock of blood in blood inventory/storage and data about order
 This database is meant to be used by blood donation centers for the overall management of data pertaining to different 
 stages in the blood donation process. Functions of the database are described in the functional requirements section.
 
-## How To Run the CLI
+## How to Run the CLI
 
 - Run ```pip3 install pymysql prettytable```.
 - Run ```mysql -u <username> -p < SQL/schema.sql``` to create the database.
