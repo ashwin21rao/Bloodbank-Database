@@ -47,23 +47,23 @@ CREATE TABLE `donor_address` (
 CREATE TABLE `donation` (
   `donation_id` int AUTO_INCREMENT,
   `blood_pressure` varchar(10) NOT NULL,
-  `haemoglobin_level` varchar(10) NOT NULL,
+  `haemoglobin_level` decimal(4, 2) NOT NULL,
   `date_of_donation` date NOT NULL,
-  `weight` decimal NOT NULL,
+  `weight` decimal(5, 2) NOT NULL,
   `travel_history` varchar(255),
   PRIMARY KEY (`donation_id`)
 );
 
 CREATE TABLE `blood_cost` (
   `blood_type` varchar(20),
-  `blood_type_cost` decimal NOT NULL,
+  `blood_type_cost` decimal(5, 2) NOT NULL,
   PRIMARY KEY (`blood_type`)
 );
 
 CREATE TABLE `blood` (
   `blood_barcode` int AUTO_INCREMENT,
   `description` varchar(255),
-  `healthy` bool,
+  `test_result` varchar(255),
   PRIMARY KEY (`blood_barcode`)
 );
 
@@ -97,8 +97,8 @@ CREATE TABLE `test_result` (
 CREATE TABLE `component` (
   `component_id` int AUTO_INCREMENT,
   `component_type` varchar(20) NOT NULL,
-  `standard_quantity` decimal NOT NULL,
-  `storage_temperature` decimal NOT NULL,
+  `standard_quantity` int NOT NULL,
+  `storage_temperature` decimal(5, 2) NOT NULL,
   `max_storage_duration` int NOT NULL,
   PRIMARY KEY (`component_id`)
 );
@@ -116,7 +116,7 @@ CREATE TABLE `orders` (
   `order_id` int AUTO_INCREMENT,
   `hospital_id` int NOT NULL,
   `date_of_order` date NOT NULL,
-  `total_cost` decimal NOT NULL,
+  `total_cost` decimal(10, 2) NOT NULL,
   PRIMARY KEY (`order_id`),
   FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`) ON DELETE CASCADE
 );
@@ -148,14 +148,14 @@ INSERT into blood_donation_center (phone_number, address) values("1265218099", "
 
 INSERT into receptionist (center_id, first_name, middle_name, last_name, phone_number) values (1, "Dario", "Borer", "Boris", "720801445");
 INSERT into receptionist (center_id, first_name, middle_name, last_name, phone_number) values (2, "Frida", "Borer", "Jast", "611711549");
-INSERT into receptionist (center_id, first_name, middle_name, last_name, phone_number) values (3, "Tabitha", "", "Paucek", "0714239233");
+INSERT into receptionist (center_id, first_name, middle_name, last_name, phone_number) values (3, "Tabitha", NULL, "Paucek", "0714239233");
 INSERT into receptionist (center_id, first_name, middle_name, last_name, phone_number) values (1, "Nicklaus", "Lynch", "V", "0720801445");
   
-INSERT into donor(employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) values (2, "Adeline", "", "Donnelly", "48518244", "tristian69@hotmail.com.au", "1974-06-27", "F", "2010-05-17");
+INSERT into donor(employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) values (2, "Adeline", NULL, "Donnelly", "48518244", "tristian69@hotmail.com.au", "1974-06-27", "F", "2010-05-17");
 INSERT into donor(employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) values (1, "Malinda", "II", "Klein", "97615138", "vkuphal@brekke.com.au", "1982-06-27", "F", "2005-05-17");
 INSERT into donor(employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) values (4, "Alfredo", "Morar", "PhD", "40534793", "ahyatt@hotmail.com.au", "1996-06-20", "M", "2017-07-30");
-INSERT into donor(employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) values (3, "Harvey", "", "Specter", "53400892", "specter@hotmail.com.au", "2000-09-24", "M", "2019-05-13");
-INSERT into donor(employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) values (3, "Eloy", "", "Zboncak", "866545325", "emilio06@gmail.com.au", "1971-09-30", "F", "2020-07-17");
+INSERT into donor(employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) values (3, "Harvey", NULL, "Specter", "53400892", "specter@hotmail.com.au", "2000-09-24", "M", "2019-05-13");
+INSERT into donor(employee_id, first_name, middle_name, last_name, phone_number, email_id, date_of_birth, gender, date_of_registration) values (3, "Eloy", NULL, "Zboncak", "866545325", "emilio06@gmail.com.au", "1971-09-30", "F", "2020-07-17");
 
 INSERT into donor_address (donor_id, address) values (1, "Apt. 782 125 Barney Stairs Port Sonny, TAS 2920");
 INSERT into donor_address (donor_id, address) values (1, "408B Angeline Stairs Mantetown, VIC 7626");
@@ -170,11 +170,11 @@ INSERT into donation (blood_pressure, haemoglobin_level, date_of_donation, weigh
 INSERT into donation (blood_pressure, haemoglobin_level, date_of_donation, weight, travel_history) values ("110/67", "14.12", "2020-08-30", "46", "travel to antarctica");
 INSERT into donation (blood_pressure, haemoglobin_level, date_of_donation, weight, travel_history) values ("119/77", "13.92", "2020-09-20", "20", "travel to white house");
 
-INSERT into blood (healthy) values ("Negative");
-INSERT into blood (healthy) values ("Negative");
-INSERT into blood (healthy) values ("Negative");
-INSERT into blood (healthy) values ("Negative");
-INSERT into blood (healthy) values ("Negative");
+INSERT into blood (test_result) values ("Negative");
+INSERT into blood (test_result) values ("Negative");
+INSERT into blood (test_result) values ("Negative");
+INSERT into blood (test_result) values ("Negative");
+INSERT into blood (test_result) values ("Negative");
 
 INSERT into blood_cost (blood_type, blood_type_cost) values ("A+", 220);
 INSERT into blood_cost (blood_type, blood_type_cost) values ("B+", 210);
