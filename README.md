@@ -12,7 +12,8 @@ blood components, stock of blood in blood inventory/storage and data about order
 ## Intended Audience
 
 This database is meant to be used by blood donation centers for the overall management of data pertaining to different 
-stages in the blood donation process. Functions of the database are described in the functional requirements section.
+stages in the blood donation process. Functions of the database are described in 
+[database_design.pdf](Schema/database_design.pdf).
 
 ## How to Run the CLI
 
