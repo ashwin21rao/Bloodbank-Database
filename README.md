@@ -1,6 +1,10 @@
 # Bloodbank Database
 
-A model database of a blood bank. Supports all relevant queries (see [database_design.pdf](Schema/database_design.pdf)).
+A model database of a blood bank. Supports all relevant queries.
+- Database design and functionalities: [database_design.pdf](Schema/database_design.pdf) 
+- Entity Relationship diagram: [ER_diagram.png](Schema/ER_diagram.png)
+- Relational Schema diagram: [relational_schema.png](Schema/relational_schema.png)
+
 
 ## Database Purpose
 
