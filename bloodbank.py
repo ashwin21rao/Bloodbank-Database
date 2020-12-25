@@ -6,8 +6,6 @@ from getpass import getpass
 from datetime import date
 import re
 
-username = ""
-password = ""
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
 RESET = "\033[m"
@@ -665,7 +663,9 @@ def loop():
         try:
             choice = int(input("Enter choice> "))
         except ValueError:
+            sp.call('clear', shell=True)
             print(RED, "Error: Invalid Choice", RESET, sep="")
+            input("Press Enter to CONTINUE> ")
             continue
 
         sp.call('clear', shell=True)
