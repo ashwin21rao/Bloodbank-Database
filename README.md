@@ -18,7 +18,7 @@ stages in the blood donation process. Functions of the database are described in
 
 - Run ```pip3 install pymysql prettytable```.
 - Run ```mysql -u <username> -p < SQL/schema.sql``` to create the database.
-- Type ```python3 bloodbank.sql``` to start the CLI. You will be prompted to enter username and password before the 
+- Run [pyscripts/main.py](pyscripts/main.py) to start the CLI. You will be prompted to enter username and password before the 
   CLI starts.
   
 ## General Instructions
