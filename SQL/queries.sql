@@ -97,6 +97,10 @@ VALUES (1, "B+", false, false, false, false, false, false, false);
 INSERT INTO blood_inventory (blood_barcode, component_id, order_id, date_of_storage)
 VALUES (2, 2, NULL, "2020-12-12");
 
+-- add a hospital
+INSERT INTO hospital (name, address, email_id, phone_number)
+VALUES ("Apollo", "Michigan, #2092", "woppo@gmail.com", "435353453");
+
 
 -- UPDATE QUERIES
 

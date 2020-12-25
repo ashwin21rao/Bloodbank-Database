@@ -208,7 +208,7 @@ INSERT INTO component (component_type, standard_quantity, storage_temperature, m
 
 INSERT INTO hospital (name, address, email_id, phone_number) VALUES ("Synergy", "Rest Port Florida, NT 2092", "pweimann@gmail.com.au", "27585300");
 INSERT INTO hospital (name, address, email_id, phone_number) VALUES ("Melb Hospital", "0B Reggie Colonnade New Rettastad, SA 3439", "walter.jamar@dickens.edu", "19554195");
-INSERT INTO hospital (name, address, email_id, phone_number) VALUES ("Sydney Hospital", "87 Brady Towers St. Isidrochester, NSW 0976", "evangeline94@hotmail.com", " 29431063");
+INSERT INTO hospital (name, address, email_id, phone_number) VALUES ("Sydney Hospital", "87 Brady Towers St. Isidrochester, NSW 0976", "evangeline94@hotmail.com", "29431063");
 INSERT INTO hospital (name, address, email_id, phone_number) VALUES ("Adlaide Hospital", "056 Palma Estate New Jovan, VIC 2516", "luettgen.marge@reilly.org", "3383717");
 
 INSERT INTO orders (hospital_id, date_of_order, total_cost) VALUES (1, "2020-09-25", 440);
