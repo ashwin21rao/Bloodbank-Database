@@ -46,6 +46,7 @@ def loop():
             "Add a Blood Test Result",
             "Add a Sample to Blood Inventory",
             "Add a Hospital",
+            "Place an Order",
             "Get Details of all Donors who have Donated",
             "Generate List of all Donated Blood Samples",
             "Generate Blood Inventory Report",
@@ -70,6 +71,8 @@ def loop():
 
         for i in range(0, len(options)):
             print(f'{i + 1}. {options[i]}')
+            if i+1 in [8, 22, 27, 28]:
+                print("---------------------------------------------------")
         try:
             choice = int(input("Enter choice> "))
         except ValueError:
@@ -80,7 +83,7 @@ def loop():
 
         sp.call('clear', shell=True)
 
-        if choice == 27:
+        if choice == 28:
             break
         else:
             if choice == 1:
@@ -98,42 +101,44 @@ def loop():
             elif choice == 7:
                 insertions.addHospital()
             elif choice == 8:
-                selections.getDonorDetails()
+                insertions.placeOrder()
             elif choice == 9:
-                selections.generateBloodSampleList()
+                selections.getDonorDetails()
             elif choice == 10:
-                selections.generateBloodInventoryReport()
+                selections.generateBloodSampleList()
             elif choice == 11:
-                selections.getDailyOrders()
+                selections.generateBloodInventoryReport()
             elif choice == 12:
-                selections.findCommonlyOrderedBloodTypes()
+                selections.getDailyOrders()
             elif choice == 13:
-                selections.findTotalStock()
+                selections.findCommonlyOrderedBloodTypes()
             elif choice == 14:
-                selections.findExpiredBlood()
+                selections.findTotalStock()
             elif choice == 15:
-                selections.getDonorsByAge()
+                selections.findExpiredBlood()
             elif choice == 16:
-                selections.getDonorsFromArea()
+                selections.getDonorsByAge()
             elif choice == 17:
-                selections.getDonorsFromBloodType()
+                selections.getDonorsFromArea()
             elif choice == 18:
-                selections.getDonationsFromTestResults()
+                selections.getDonorsFromBloodType()
             elif choice == 19:
-                selections.getDonorsFromEmployee()
+                selections.getDonationsFromTestResults()
             elif choice == 20:
-                selections.getDonorsRegisteredAtCenter()
+                selections.getDonorsFromEmployee()
             elif choice == 21:
-                selections.getDonorsDonatedAtCenter()
+                selections.getDonorsRegisteredAtCenter()
             elif choice == 22:
-                updates.updateDonorDetails()
+                selections.getDonorsDonatedAtCenter()
             elif choice == 23:
-                deletions.removeDonor()
+                updates.updateDonorDetails()
             elif choice == 24:
-                deletions.removeOrderedSamplesFromInventory()
+                deletions.removeDonor()
             elif choice == 25:
-                deletions.removeExpiredSamplesFromInventory()
+                deletions.removeOrderedSamplesFromInventory()
             elif choice == 26:
+                deletions.removeExpiredSamplesFromInventory()
+            elif choice == 27:
                 deletions.removeDiseasedBlood()
             else:
                 print(cfg.RED, "Error: Invalid Choice", cfg.RESET, sep="")

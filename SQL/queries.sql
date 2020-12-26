@@ -136,3 +136,35 @@ DELETE FROM blood_inventory WHERE order_id IS NULL AND date_of_expiry < CURDATE(
 
 -- delete blood records with test result positive
 DELETE FROM blood WHERE test_result = "Positive";
+
+-- QUERIES FOR PLACING AN ORDER
+
+-- get stock of specified item
+SELECT COUNT(*) FROM blood_inventory
+    JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode
+    JOIN test_result ON blood.blood_barcode = test_result.blood_barcode
+    JOIN component ON blood_inventory.component_id = component.component_id
+WHERE order_id IS NULL AND test_result.blood_type = "A+" AND component.component_type = "RBC";
+
+-- generate list of requested items in blood inventory
+SELECT blood_inventory.blood_barcode, blood_inventory.component_id FROM blood_inventory
+    JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode
+    JOIN test_result ON blood.blood_barcode = test_result.blood_barcode
+    JOIN component ON blood_inventory.component_id = component.component_id
+WHERE order_id IS NULL AND test_result.blood_type = "B+" AND component.component_type = "Platelets"
+ORDER BY date_of_expiry;
+
+-- update order id of an item which is ordered
+UPDATE blood_inventory SET order_id = 3 WHERE blood_barcode = 1 AND component_id = 1;
+
+-- add an order
+INSERT INTO orders (hospital_id, date_of_order, total_cost) VALUES (%s, CURDATE(), 0)
+
+-- add an order component of specified order
+INSERT INTO order_components (order_id, blood_type, component_type, quantity) VALUES (3, "A+", "Platelets", 2);
+
+-- update total cost of an order
+UPDATE orders SET total_cost = 550 WHERE order_id = 3;
+
+-- get cost of specified blood type
+SELECT blood_type_cost FROM blood_cost WHERE blood_type = "B+";

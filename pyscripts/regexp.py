@@ -22,6 +22,8 @@ def validateInput(inp_str, inp_type, opt=False):
         validator = lambda address: re.match("^[ \w]+$", address)
     elif inp_type == "Blood":
         validator = lambda b_type: b_type in ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+    elif inp_type == "Component":
+        validator = lambda c_type: c_type in ["RBC", "Plasma", "Platelets"]
     elif inp_type == "BP":
         validator = lambda bp: re.match("^\d{2,3}/\d{2,3}$", bp)
     elif inp_type == "Result":

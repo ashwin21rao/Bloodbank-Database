@@ -1,3 +1,4 @@
+import subprocess as sp
 import pymysql.cursors
 from datetime import date
 import config as cfg
@@ -245,5 +246,115 @@ def addHospital():
         print(cfg.RED, "ERROR>>>>>>>>>>>>> ", e, cfg.RESET, sep="")
 
 
-# def placeOrder():
-#     pass
+def placeOrder():
+    try:
+        order_id = None
+        order_placed = False
+        total_cost = 0
+
+        order = {}
+        order["hospital_id"] = int(validateInput("Hospital ID", "Integer"))
+
+        while True:
+            sp.call('clear', shell=True)
+            options = [
+                "Add Item",
+                "Finish Order"
+            ]
+            for i in range(0, len(options)):
+                print(f'{i + 1}. {options[i]}')
+            try:
+                choice = int(input("Enter choice> "))
+            except ValueError:
+                print(cfg.RED, "Error: Invalid Choice", cfg.RESET, sep="")
+                input("Press Enter to CONTINUE> ")
+                continue
+
+            if choice == 2:
+                break
+            if choice != 1:
+                print(cfg.RED, "Error: Invalid Choice", cfg.RESET, sep="")
+                input("Press Enter to CONTINUE> ")
+                continue
+
+            order["b_type"] = validateInput("Blood Type", "Blood")
+            order["c_type"] = validateInput("Component Type (RBC, Plasma, Platelets)", "Component")
+
+            # calculate stock of specified item
+            SQL_query = "SELECT COUNT(*) AS stock FROM blood_inventory " \
+                        "JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode " \
+                        "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
+                        "JOIN component ON blood_inventory.component_id = component.component_id " \
+                        "WHERE order_id IS NULL AND test_result.blood_type = %s AND component.component_type = %s"
+
+            cfg.dict_cursor.execute(SQL_query, (order["b_type"], order["c_type"]))
+            stock = cfg.dict_cursor.fetchone()["stock"]
+
+            if stock == 0:
+                print("Requested item out of stock!")
+                input("Press Enter to CONTINUE> ")
+            else:
+                print(f"Quantity available: {stock}")
+                order["quantity"] = int(validateInput("Quantity", "Integer"))
+
+                if order["quantity"] > stock:
+                    print("Too many items requested!")
+                    input("Press Enter to CONTINUE> ")
+                elif order["quantity"] == 0:
+                    print("Invalid input")
+                    input("Press Enter to CONTINUE> ")
+                else:
+                    if not order_placed:
+                        # insert into to orders table
+                        order_placed = True
+                        SQL_query = "INSERT INTO orders (hospital_id, date_of_order, total_cost) VALUES (%s, CURDATE(), 0)"
+                        cfg.cursor.execute(SQL_query, (order["hospital_id"]))
+                        cfg.db.commit()
+
+                        SQL_query = "SELECT MAX(order_id) as 'max' FROM orders"
+                        cfg.dict_cursor.execute(SQL_query)
+                        order_id = cfg.dict_cursor.fetchone()["max"]
+
+                    # calculate cost of order component
+                    SQL_query = "SELECT blood_type_cost FROM blood_cost WHERE blood_type = %s"
+                    cfg.dict_cursor.execute(SQL_query, (order["b_type"]))
+                    items_cost = int(cfg.dict_cursor.fetchone()["blood_type_cost"])
+                    total_cost += items_cost * order["quantity"]
+
+                    # find available items in blood inventory
+                    SQL_query = "SELECT blood_inventory.blood_barcode, blood_inventory.component_id FROM blood_inventory " \
+                                "JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode " \
+                                "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
+                                "JOIN component ON blood_inventory.component_id = component.component_id " \
+                                "WHERE order_id IS NULL AND test_result.blood_type = %s AND component.component_type = %s " \
+                                "ORDER BY date_of_expiry"
+
+                    cfg.dict_cursor.execute(SQL_query, (order["b_type"], order["c_type"]))
+
+                    for _ in range(0, order["quantity"]):
+                        item = cfg.dict_cursor.fetchone()
+
+                        # update order_id of ordered items in blood inventory
+                        SQL_query = "UPDATE blood_inventory SET order_id = %s WHERE blood_barcode = %s AND component_id = %s"
+                        cfg.cursor.execute(SQL_query, (order_id, item["blood_barcode"], item["component_id"]))
+                        cfg.db.commit()
+
+                    # insert into to order_components table
+                    SQL_query = "INSERT INTO order_components (order_id, blood_type, component_type, quantity) " \
+                                "VALUES (%s, %s, %s, %s)"
+                    cfg.cursor.execute(SQL_query, (order_id, order["b_type"], order["c_type"], order["quantity"]))
+                    cfg.db.commit()
+
+                    print(cfg.GREEN, f"Items added successfully (cost: {items_cost * order['quantity']})", cfg.RESET, sep="")
+                    input("Press Enter to CONTINUE> ")
+
+        SQL_query = "UPDATE orders SET total_cost = %s WHERE order_id = %s"
+        cfg.cursor.execute(SQL_query, (total_cost, order_id))
+        cfg.db.commit()
+
+        print(cfg.GREEN, f"Order successful (total cost: {total_cost})", cfg.RESET, sep="")
+
+    except Exception as e:
+        cfg.db.rollback()
+        print(cfg.RED, "Failed to insert into database", cfg.RESET, sep="")
+        print(cfg.RED, "ERROR>>>>>>>>>>>>> ", e, cfg.RESET, sep="")

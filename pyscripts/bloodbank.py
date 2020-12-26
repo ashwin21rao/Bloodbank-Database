@@ -32,6 +32,8 @@ def validateInput(inp_str, inp_type, opt=False):
         validator = lambda address: re.match("^[ \w]+$", address)
     elif inp_type == "Blood":
         validator = lambda b_type: b_type in ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+    elif inp_type == "Component":
+        validator = lambda c_type: c_type in ["RBC", "Plasma", "Platelets"]
     elif inp_type == "BP":
         validator = lambda bp: re.match("^\d{2,3}/\d{2,3}$", bp)
     elif inp_type == "Result":
@@ -316,8 +318,119 @@ def addHospital():
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
-# def placeOrder():
-#     pass
+def placeOrder():
+    try:
+        order_id = None
+        order_placed = False
+        total_cost = 0
+
+        order = {}
+        order["hospital_id"] = int(validateInput("Hospital ID", "Integer"))
+
+        while True:
+            sp.call('clear', shell=True)
+            options = [
+                "Add Item",
+                "Finish Order"
+            ]
+            for i in range(0, len(options)):
+                print(f'{i + 1}. {options[i]}')
+            try:
+                choice = int(input("Enter choice> "))
+            except ValueError:
+                print(RED, "Error: Invalid Choice", RESET, sep="")
+                input("Press Enter to CONTINUE> ")
+                continue
+
+            if choice == 2:
+                break
+            if choice != 1:
+                print(RED, "Error: Invalid Choice", RESET, sep="")
+                input("Press Enter to CONTINUE> ")
+                continue
+
+            order["b_type"] = validateInput("Blood Type", "Blood")
+            order["c_type"] = validateInput("Component Type (RBC, Plasma, Platelets)", "Component")
+
+            # calculate stock of specified item
+            SQL_query = "SELECT COUNT(*) AS stock FROM blood_inventory " \
+                        "JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode " \
+                        "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
+                        "JOIN component ON blood_inventory.component_id = component.component_id " \
+                        "WHERE order_id IS NULL AND test_result.blood_type = %s AND component.component_type = %s"
+
+            dict_cursor.execute(SQL_query, (order["b_type"], order["c_type"]))
+            stock = dict_cursor.fetchone()["stock"]
+
+            if stock == 0:
+                print("Requested item out of stock!")
+                input("Press Enter to CONTINUE> ")
+            else:
+                print(f"Quantity available: {stock}")
+                order["quantity"] = int(validateInput("Quantity", "Integer"))
+
+                if order["quantity"] > stock:
+                    print("Too many items requested!")
+                    input("Press Enter to CONTINUE> ")
+                elif order["quantity"] == 0:
+                    print("Invalid input")
+                    input("Press Enter to CONTINUE> ")
+                else:
+                    if not order_placed:
+                        # insert into to orders table
+                        order_placed = True
+                        SQL_query = "INSERT INTO orders (hospital_id, date_of_order, total_cost) VALUES (%s, CURDATE(), 0)"
+                        cursor.execute(SQL_query, (order["hospital_id"]))
+                        db.commit()
+
+                        SQL_query = "SELECT MAX(order_id) as 'max' FROM orders"
+                        dict_cursor.execute(SQL_query)
+                        order_id = dict_cursor.fetchone()["max"]
+
+                    # calculate cost of order component
+                    SQL_query = "SELECT blood_type_cost FROM blood_cost WHERE blood_type = %s"
+                    dict_cursor.execute(SQL_query, (order["b_type"]))
+                    items_cost = int(dict_cursor.fetchone()["blood_type_cost"])
+                    total_cost += items_cost * order["quantity"]
+
+                    # find available items in blood inventory
+                    SQL_query = "SELECT blood_inventory.blood_barcode, blood_inventory.component_id FROM blood_inventory " \
+                                "JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode " \
+                                "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
+                                "JOIN component ON blood_inventory.component_id = component.component_id " \
+                                "WHERE order_id IS NULL AND test_result.blood_type = %s AND component.component_type = %s " \
+                                "ORDER BY date_of_expiry"
+
+                    dict_cursor.execute(SQL_query, (order["b_type"], order["c_type"]))
+
+                    for _ in range(0, order["quantity"]):
+                        item = dict_cursor.fetchone()
+
+                        # update order_id of ordered items in blood inventory
+                        SQL_query = "UPDATE blood_inventory SET order_id = %s WHERE blood_barcode = %s AND component_id = %s"
+                        cursor.execute(SQL_query, (order_id, item["blood_barcode"], item["component_id"]))
+                        db.commit()
+
+                    # insert into to order_components table
+                    SQL_query = "INSERT INTO order_components (order_id, blood_type, component_type, quantity) " \
+                                "VALUES (%s, %s, %s, %s)"
+                    cursor.execute(SQL_query, (order_id, order["b_type"], order["c_type"], order["quantity"]))
+                    db.commit()
+
+                    print(GREEN, f"Items added successfully (cost: {items_cost * order['quantity']})", RESET, sep="")
+                    input("Press Enter to CONTINUE> ")
+
+        SQL_query = "UPDATE orders SET total_cost = %s WHERE order_id = %s"
+        cursor.execute(SQL_query, (total_cost, order_id))
+        db.commit()
+
+        print(GREEN, f"Order successful (total cost: {total_cost})", RESET, sep="")
+
+    except Exception as e:
+        db.rollback()
+        print(RED, "Failed to insert into database", RESET, sep="")
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
+
 
 
 # ------------------------ UPDATE QUERIES ------------------------
@@ -672,6 +785,7 @@ def loop():
             "Add a Blood Test Result",
             "Add a Sample to Blood Inventory",
             "Add a Hospital",
+            "Place an Order",
             "Get Details of all Donors who have Donated",
             "Generate List of all Donated Blood Samples",
             "Generate Blood Inventory Report",
@@ -696,6 +810,8 @@ def loop():
 
         for i in range(0, len(options)):
             print(f'{i + 1}. {options[i]}')
+            if i+1 in [8, 22, 27, 28]:
+                print("---------------------------------------------------")
         try:
             choice = int(input("Enter choice> "))
         except ValueError:
@@ -706,7 +822,7 @@ def loop():
 
         sp.call('clear', shell=True)
 
-        if choice == 27:
+        if choice == 28:
             break
         else:
             if choice == 1:
@@ -724,42 +840,44 @@ def loop():
             elif choice == 7:
                 addHospital()
             elif choice == 8:
-                getDonorDetails()
+                placeOrder()
             elif choice == 9:
-                generateBloodSampleList()
+                getDonorDetails()
             elif choice == 10:
-                generateBloodInventoryReport()
+                generateBloodSampleList()
             elif choice == 11:
-                getDailyOrders()
+                generateBloodInventoryReport()
             elif choice == 12:
-                findCommonlyOrderedBloodTypes()
+                getDailyOrders()
             elif choice == 13:
-                findTotalStock()
+                findCommonlyOrderedBloodTypes()
             elif choice == 14:
-                findExpiredBlood()
+                findTotalStock()
             elif choice == 15:
-                getDonorsByAge()
+                findExpiredBlood()
             elif choice == 16:
-                getDonorsFromArea()
+                getDonorsByAge()
             elif choice == 17:
-                getDonorsFromBloodType()
+                getDonorsFromArea()
             elif choice == 18:
-                getDonationsFromTestResults()
+                getDonorsFromBloodType()
             elif choice == 19:
-                getDonorsFromEmployee()
+                getDonationsFromTestResults()
             elif choice == 20:
-                getDonorsRegisteredAtCenter()
+                getDonorsFromEmployee()
             elif choice == 21:
-                getDonorsDonatedAtCenter()
+                getDonorsRegisteredAtCenter()
             elif choice == 22:
-                updateDonorDetails()
+                getDonorsDonatedAtCenter()
             elif choice == 23:
-                removeDonor()
+                updateDonorDetails()
             elif choice == 24:
-                removeOrderedSamplesFromInventory()
+                removeDonor()
             elif choice == 25:
-                removeExpiredSamplesFromInventory()
+                removeOrderedSamplesFromInventory()
             elif choice == 26:
+                removeExpiredSamplesFromInventory()
+            elif choice == 27:
                 removeDiseasedBlood()
             else:
                 print(RED, "Error: Invalid Choice", RESET, sep="")
