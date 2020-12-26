@@ -884,7 +884,7 @@ def loop():
             elif choice == 27:
                 removeDiseasedBlood()
             else:
-                print(cfg.RED, "Error: Invalid Choice", cfg.RESET, sep="")
+                print(RED, "Error: Invalid Choice", RESET, sep="")
             input("Press Enter to CONTINUE> ")
 
 
