@@ -410,6 +410,20 @@ def removeExpiredSamplesFromInventory():
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
+def removeDiseasedBlood():
+    try:
+        SQL_query = "DELETE FROM blood WHERE test_result = 'Positive'"
+
+        cursor.execute(SQL_query)
+        db.commit()
+        print(GREEN, "Delete successful", RESET, sep="")
+
+    except Exception as e:
+        db.rollback()
+        print(RED, "Failed to delete from database", RESET, sep="")
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
+
+
 # ------------------------ SELECTION QUERIES ------------------------
 def getDonorDetails():
     try:
@@ -661,6 +675,7 @@ def loop():
             "Remove a Donor",
             "Delete Ordered Samples from Inventory",
             "Delete Expired Samples from Inventory",
+            "Delete Blood Samples With Test Result Positive",
             "Quit"
         ]
 
@@ -676,7 +691,7 @@ def loop():
 
         sp.call('clear', shell=True)
 
-        if choice == 25:
+        if choice == 26:
             break
         else:
             if choice == 1:
@@ -727,6 +742,8 @@ def loop():
                 removeOrderedSamplesFromInventory()
             elif choice == 24:
                 removeExpiredSamplesFromInventory()
+            elif choice == 25:
+                removeDiseasedBlood()
             else:
                 print(RED, "Error: Invalid Choice", RESET, sep="")
             input("Press Enter to CONTINUE> ")

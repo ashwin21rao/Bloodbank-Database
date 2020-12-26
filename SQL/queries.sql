@@ -130,3 +130,6 @@ DELETE FROM blood_inventory WHERE order_id IS NOT NULL;
 
 -- delete expired samples from inventory
 DELETE FROM blood_inventory WHERE order_id IS NULL AND date_of_expiry < CURDATE();
+
+-- delete blood records with test result positive
+DELETE FROM blood WHERE test_result = "Positive";

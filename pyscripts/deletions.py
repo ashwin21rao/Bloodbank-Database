@@ -44,3 +44,17 @@ def removeExpiredSamplesFromInventory():
         cfg.db.rollback()
         print(cfg.RED, "Failed to delete from database", cfg.RESET, sep="")
         print(cfg.RED, "ERROR>>>>>>>>>>>>> ", e, cfg.RESET, sep="")
+
+
+def removeDiseasedBlood():
+    try:
+        SQL_query = "DELETE FROM blood WHERE test_result = 'Positive'"
+
+        cfg.cursor.execute(SQL_query)
+        cfg.db.commit()
+        print(cfg.GREEN, "Delete successful", cfg.RESET, sep="")
+
+    except Exception as e:
+        cfg.db.rollback()
+        print(cfg.RED, "Failed to delete from database", cfg.RESET, sep="")
+        print(cfg.RED, "ERROR>>>>>>>>>>>>> ", e, cfg.RESET, sep="")

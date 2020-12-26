@@ -63,6 +63,7 @@ def loop():
             "Remove a Donor",
             "Delete Ordered Samples from Inventory",
             "Delete Expired Samples from Inventory",
+            "Delete Blood Samples With Test Result Positive",
             "Quit"
         ]
 
@@ -78,7 +79,7 @@ def loop():
 
         sp.call('clear', shell=True)
 
-        if choice == 25:
+        if choice == 26:
             break
         else:
             if choice == 1:
@@ -129,6 +130,8 @@ def loop():
                 deletions.removeOrderedSamplesFromInventory()
             elif choice == 24:
                 deletions.removeExpiredSamplesFromInventory()
+            elif choice == 25:
+                deletions.removeDiseasedBlood()
             else:
                 print(cfg.RED, "Error: Invalid Choice", cfg.RESET, sep="")
             input("Press Enter to CONTINUE> ")
