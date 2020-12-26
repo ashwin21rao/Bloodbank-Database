@@ -49,15 +49,15 @@ def loop():
             "Place an Order",
             "Get Details of all Donors who have Donated",
             "Generate List of all Donated Blood Samples",
+            "Get Blood Donations with a Specific Test Result",
             "Generate Blood Inventory Report",
+            "Find Samples in Blood Inventory which have Expired",
             "Get Orders on a Particular Date",
             "Find Most Commonly Ordered Blood Type and Component Type",
             "Find Total Stock of Each Blood Type and Component Type",
-            "Find Samples in Blood Inventory which have Expired",
             "Get Donors in a Specific Age Group",
             "Get Donors living in a Particular Area",
             "Get Donors with a Specific Blood Type",
-            "Get Blood Donations with a Specific Test Result",
             "Get Donors Registered by a Particular Employee",
             "Get Donors Registered at a Particular Center",
             "Get Donors who have Donated at a Particular Center",
@@ -72,7 +72,7 @@ def loop():
         for i in range(0, len(options)):
             print(f'{i + 1}. {options[i]}')
             if i+1 in [8, 22, 27, 28]:
-                print("---------------------------------------------------")
+                print("------------------------------------------------------------")
         try:
             choice = int(input("Enter choice> "))
         except ValueError:
@@ -107,23 +107,23 @@ def loop():
             elif choice == 10:
                 selections.generateBloodSampleList()
             elif choice == 11:
-                selections.generateBloodInventoryReport()
-            elif choice == 12:
-                selections.getDailyOrders()
-            elif choice == 13:
-                selections.findCommonlyOrderedBloodTypes()
-            elif choice == 14:
-                selections.findTotalStock()
-            elif choice == 15:
-                selections.findExpiredBlood()
-            elif choice == 16:
-                selections.getDonorsByAge()
-            elif choice == 17:
-                selections.getDonorsFromArea()
-            elif choice == 18:
-                selections.getDonorsFromBloodType()
-            elif choice == 19:
                 selections.getDonationsFromTestResults()
+            elif choice == 12:
+                selections.generateBloodInventoryReport()
+            elif choice == 13:
+                selections.findExpiredBlood()
+            elif choice == 14:
+                selections.getDailyOrders()
+            elif choice == 15:
+                selections.findCommonlyOrderedBloodTypes()
+            elif choice == 16:
+                selections.findTotalStock()
+            elif choice == 17:
+                selections.getDonorsByAge()
+            elif choice == 18:
+                selections.getDonorsFromArea()
+            elif choice == 19:
+                selections.getDonorsFromBloodType()
             elif choice == 20:
                 selections.getDonorsFromEmployee()
             elif choice == 21:

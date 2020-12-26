@@ -792,15 +792,15 @@ def loop():
             "Place an Order",
             "Get Details of all Donors who have Donated",
             "Generate List of all Donated Blood Samples",
+            "Get Blood Donations with a Specific Test Result",
             "Generate Blood Inventory Report",
+            "Find Samples in Blood Inventory which have Expired",
             "Get Orders on a Particular Date",
             "Find Most Commonly Ordered Blood Type and Component Type",
             "Find Total Stock of Each Blood Type and Component Type",
-            "Find Samples in Blood Inventory which have Expired",
             "Get Donors in a Specific Age Group",
             "Get Donors living in a Particular Area",
             "Get Donors with a Specific Blood Type",
-            "Get Blood Donations with a Specific Test Result",
             "Get Donors Registered by a Particular Employee",
             "Get Donors Registered at a Particular Center",
             "Get Donors who have Donated at a Particular Center",
@@ -815,7 +815,7 @@ def loop():
         for i in range(0, len(options)):
             print(f'{i + 1}. {options[i]}')
             if i+1 in [8, 22, 27, 28]:
-                print("---------------------------------------------------")
+                print("------------------------------------------------------------")
         try:
             choice = int(input("Enter choice> "))
         except ValueError:
@@ -850,23 +850,23 @@ def loop():
             elif choice == 10:
                 generateBloodSampleList()
             elif choice == 11:
-                generateBloodInventoryReport()
-            elif choice == 12:
-                getDailyOrders()
-            elif choice == 13:
-                findCommonlyOrderedBloodTypes()
-            elif choice == 14:
-                findTotalStock()
-            elif choice == 15:
-                findExpiredBlood()
-            elif choice == 16:
-                getDonorsByAge()
-            elif choice == 17:
-                getDonorsFromArea()
-            elif choice == 18:
-                getDonorsFromBloodType()
-            elif choice == 19:
                 getDonationsFromTestResults()
+            elif choice == 12:
+                generateBloodInventoryReport()
+            elif choice == 13:
+                findExpiredBlood()
+            elif choice == 14:
+                getDailyOrders()
+            elif choice == 15:
+                findCommonlyOrderedBloodTypes()
+            elif choice == 16:
+                findTotalStock()
+            elif choice == 17:
+                getDonorsByAge()
+            elif choice == 18:
+                getDonorsFromArea()
+            elif choice == 19:
+                getDonorsFromBloodType()
             elif choice == 20:
                 getDonorsFromEmployee()
             elif choice == 21:
@@ -884,7 +884,7 @@ def loop():
             elif choice == 27:
                 removeDiseasedBlood()
             else:
-                print(RED, "Error: Invalid Choice", RESET, sep="")
+                print(cfg.RED, "Error: Invalid Choice", cfg.RESET, sep="")
             input("Press Enter to CONTINUE> ")
 
 
