@@ -8,6 +8,7 @@ import re
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
+CYAN = "\033[1;36m"
 RESET = "\033[m"
 
 
@@ -87,7 +88,7 @@ def addDonor():
         donor["dob"] = validateInput("Date of Birth (YYYY/MM/DD)", "Date")
         year, month, day = map(int, donor["dob"].split("/"))
         if ((date.today() - date(year, month, day)).days // 365) < 18:
-            print("Donor must be 18 years or above to donate!")
+            print(CYAN, "Donor must be 18 years or above to donate!", RESET, sep="")
             return
 
         donor["eid"] = int(validateInput("Employee ID of Receptionist", "Integer"))
@@ -163,23 +164,23 @@ def addDonation():
         donation["bp"] = validateInput("Blood Pressure (systolic/diastolic)", "BP")
         sys, dia = map(int, donation["bp"].split("/"))
         if sys > 180 or dia > 100:
-            print("Blood pressure must be below 180 (systolic) and 100 (diastolic) to donate")
+            print(CYAN, "Blood pressure must be below 180 (systolic) and 100 (diastolic) to donate", RESET, sep="")
             return
 
         donation["haem"] = float(validateInput("Haemoglobin Level (g/dl)", "Float"))
         if donation["haem"] > 20:
-            print("Haemoglobin level must be below 20 g/dl to donate")
+            print(CYAN, "Haemoglobin level must be below 20 g/dl to donate", RESET, sep="")
             return
         if sex == 'M' and donation["haem"] < 13:
-            print("Haemoglobin level must be above 13 g/dl to donate")
+            print(CYAN, "Haemoglobin level must be above 13 g/dl to donate", RESET, sep="")
             return
         if sex == 'F' and donation["haem"] < 12.5:
-            print("Haemoglobin level must be above 12.5 g/dl to donate")
+            print(CYAN, "Haemoglobin level must be above 12.5 g/dl to donate", RESET, sep="")
             return
 
         donation["weight"] = float(validateInput("Weight (kg)", "Float"))
         if(donation["weight"] < 50):
-            print("Weight must be greater than 50kg to donate")
+            print(CYAN, "Weight must be greater than 50kg to donate", RESET, sep="")
             return
 
         donation["travel"] = input("Travel History*: ")
@@ -266,10 +267,10 @@ def addToInventory():
         dict_cursor.execute(SQL_query, (inventory["barcode"]))
         result = dict_cursor.fetchone()["test_result"]
         if result == "Positive":
-            print("Blood is unhealthy, cannot store in inventory")
+            print(CYAN, "Blood is unhealthy, cannot store in inventory", RESET, sep="")
             return
         elif result == "Pending":
-            print("Blood can be stored only after test results are released")
+            print(CYAN, "Blood can be stored only after test results are released", RESET, sep="")
             return
 
         inventory["comp_id"] = int(validateInput("Component ID", "Integer"))
@@ -363,17 +364,17 @@ def placeOrder():
             stock = dict_cursor.fetchone()["stock"]
 
             if stock == 0:
-                print("Requested item out of stock!")
+                print(CYAN, "Requested item out of stock!", RESET, sep="")
                 input("Press Enter to CONTINUE> ")
             else:
                 print(f"Quantity available: {stock}")
                 order["quantity"] = int(validateInput("Quantity", "Integer"))
 
                 if order["quantity"] > stock:
-                    print("Too many items requested!")
+                    print(CYAN, "Too many items requested!", RESET, sep="")
                     input("Press Enter to CONTINUE> ")
                 elif order["quantity"] == 0:
-                    print("Invalid input")
+                    print(CYAN, "Quantity cannot be 0", RESET, sep="")
                     input("Press Enter to CONTINUE> ")
                 else:
                     if not order_placed:
@@ -424,7 +425,10 @@ def placeOrder():
         cursor.execute(SQL_query, (total_cost, order_id))
         db.commit()
 
-        print(GREEN, f"Order successful (total cost: {total_cost})", RESET, sep="")
+        if total_cost > 0:
+            print(GREEN, f"Order successful (total cost: {total_cost})", RESET, sep="")
+        else:
+            print(RED, f"Order discarded (total cost: {total_cost})", RESET, sep="")
 
     except Exception as e:
         db.rollback()
