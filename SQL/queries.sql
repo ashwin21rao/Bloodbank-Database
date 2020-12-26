@@ -6,6 +6,9 @@ SELECT DISTINCT donor.donor_id, first_name, middle_name, last_name, phone_number
     JOIN blood ON donor_participation.blood_barcode = blood.blood_barcode
     JOIN test_result ON blood.blood_barcode = test_result.blood_barcode;
 
+-- generate list of all donated blood samples
+SELECT * FROM blood;
+
 -- generate blood inventory report
 SELECT * FROM blood_inventory ORDER BY date_of_storage;
 

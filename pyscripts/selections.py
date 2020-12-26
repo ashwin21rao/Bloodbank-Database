@@ -21,6 +21,20 @@ def getDonorDetails():
         print(cfg.RED, "ERROR>>>>>>>>>>>>> ", e, cfg.RESET, sep="")
 
 
+def generateBloodSampleList():
+    try:
+        SQL_query = "SELECT * FROM blood"
+
+        cfg.cursor.execute(SQL_query)
+        table = from_db_cursor(cfg.cursor)
+        table.align = "r"
+        print(table)
+
+    except Exception as e:
+        print(cfg.RED, "Query failed", cfg.RESET, sep="")
+        print(cfg.RED, "ERROR>>>>>>>>>>>>> ", e, cfg.RESET, sep="")
+
+
 def generateBloodInventoryReport():
     try:
         SQL_query = "SELECT * FROM blood_inventory ORDER BY date_of_storage"

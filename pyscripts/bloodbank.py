@@ -442,6 +442,20 @@ def getDonorDetails():
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
+def generateBloodSampleList():
+    try:
+        SQL_query = "SELECT * FROM blood"
+
+        cursor.execute(SQL_query)
+        table = from_db_cursor(cursor)
+        table.align = "r"
+        print(table)
+
+    except Exception as e:
+        print(RED, "Query failed", RESET, sep="")
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
+
+
 def generateBloodInventoryReport():
     try:
         SQL_query = "SELECT * FROM blood_inventory ORDER BY date_of_storage"
@@ -659,6 +673,7 @@ def loop():
             "Add a Sample to Blood Inventory",
             "Add a Hospital",
             "Get Details of all Donors who have Donated",
+            "Generate List of all Donated Blood Samples",
             "Generate Blood Inventory Report",
             "Get Orders on a Particular Date",
             "Find Most Commonly Ordered Blood Type and Component Type",
@@ -691,7 +706,7 @@ def loop():
 
         sp.call('clear', shell=True)
 
-        if choice == 26:
+        if choice == 27:
             break
         else:
             if choice == 1:
@@ -711,38 +726,40 @@ def loop():
             elif choice == 8:
                 getDonorDetails()
             elif choice == 9:
-                generateBloodInventoryReport()
+                generateBloodSampleList()
             elif choice == 10:
-                getDailyOrders()
+                generateBloodInventoryReport()
             elif choice == 11:
-                findCommonlyOrderedBloodTypes()
+                getDailyOrders()
             elif choice == 12:
-                findTotalStock()
+                findCommonlyOrderedBloodTypes()
             elif choice == 13:
-                findExpiredBlood()
+                findTotalStock()
             elif choice == 14:
-                getDonorsByAge()
+                findExpiredBlood()
             elif choice == 15:
-                getDonorsFromArea()
+                getDonorsByAge()
             elif choice == 16:
-                getDonorsFromBloodType()
+                getDonorsFromArea()
             elif choice == 17:
-                getDonationsFromTestResults()
+                getDonorsFromBloodType()
             elif choice == 18:
-                getDonorsFromEmployee()
+                getDonationsFromTestResults()
             elif choice == 19:
-                getDonorsRegisteredAtCenter()
+                getDonorsFromEmployee()
             elif choice == 20:
-                getDonorsDonatedAtCenter()
+                getDonorsRegisteredAtCenter()
             elif choice == 21:
-                updateDonorDetails()
+                getDonorsDonatedAtCenter()
             elif choice == 22:
-                removeDonor()
+                updateDonorDetails()
             elif choice == 23:
-                removeOrderedSamplesFromInventory()
+                removeDonor()
             elif choice == 24:
-                removeExpiredSamplesFromInventory()
+                removeOrderedSamplesFromInventory()
             elif choice == 25:
+                removeExpiredSamplesFromInventory()
+            elif choice == 26:
                 removeDiseasedBlood()
             else:
                 print(RED, "Error: Invalid Choice", RESET, sep="")
