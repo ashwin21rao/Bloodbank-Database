@@ -212,9 +212,8 @@ def getDonorsDonatedAtCenter():
 
 def findExpiredBlood():
     try:
-        SQL_query = "SELECT blood_inventory.blood_barcode, blood_inventory.component_id, blood_inventory.date_of_storage, component.max_storage_duration FROM blood_inventory " \
-                    "JOIN component ON blood_inventory.component_id = component.component_id " \
-                    "WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE()"
+        SQL_query = "SELECT blood_barcode, component_id, date_of_storage, date_of_expiry FROM blood_inventory " \
+                    "WHERE order_id IS NULL AND date_of_expiry < CURDATE()"
 
         cfg.cursor.execute(SQL_query)
         table = from_db_cursor(cfg.cursor)

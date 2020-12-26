@@ -280,6 +280,15 @@ def addToInventory():
         db.commit()
         print(GREEN, "Insert successful", RESET, sep="")
 
+        # update blood inventory
+        SQL_query = "UPDATE blood_inventory " \
+                    "JOIN component ON blood_inventory.component_id = component.component_id " \
+                    "SET date_of_expiry = date_of_storage + INTERVAL max_storage_duration DAY " \
+                    "WHERE blood_inventory.blood_barcode = %s AND blood_inventory.component_id = %s"
+
+        cursor.execute(SQL_query, (inventory["barcode"], inventory["comp_id"]))
+        db.commit()
+
     except Exception as e:
         db.rollback()
         print(RED, "Failed to insert into database", RESET, sep="")
@@ -389,9 +398,7 @@ def removeOrderedSamplesFromInventory():
 
 def removeExpiredSamplesFromInventory():
     try:
-        SQL_query = "DELETE blood_inventory FROM blood_inventory " \
-                    "JOIN component ON blood_inventory.component_id = component.component_id " \
-                    "WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE()"
+        SQL_query = "DELETE FROM blood_inventory WHERE order_id IS NULL AND date_of_expiry < CURDATE()"
 
         cursor.execute(SQL_query)
         db.commit()
@@ -612,9 +619,8 @@ def getDonorsDonatedAtCenter():
 
 def findExpiredBlood():
     try:
-        SQL_query = "SELECT blood_inventory.blood_barcode, blood_inventory.component_id, blood_inventory.date_of_storage, component.max_storage_duration FROM blood_inventory " \
-                    "JOIN component ON blood_inventory.component_id = component.component_id " \
-                    "WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE()"
+        SQL_query = "SELECT blood_barcode, component_id, date_of_storage, date_of_expiry FROM blood_inventory " \
+                    "WHERE order_id IS NULL AND date_of_expiry < CURDATE()"
 
         cursor.execute(SQL_query)
         table = from_db_cursor(cursor)
@@ -653,8 +659,8 @@ def loop():
             "Get Donors who have Donated at a Particular Center",
             "Update Details of a Donor",
             "Remove a Donor",
-            "Delete Expired Samples from Inventory",
             "Delete Ordered Samples from Inventory",
+            "Delete Expired Samples from Inventory",
             "Quit"
         ]
 

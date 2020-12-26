@@ -138,6 +138,7 @@ CREATE TABLE `blood_inventory` (
   `component_id` INT,
   `order_id` INT,
   `date_of_storage` DATE NOT NULL,
+  `date_of_expiry` DATE,
   PRIMARY KEY (`blood_barcode`, `component_id`),
   FOREIGN KEY (`blood_barcode`) REFERENCES `blood` (`blood_barcode`) ON DELETE CASCADE,
   FOREIGN KEY (`component_id`) REFERENCES `component` (`component_id`) ON DELETE CASCADE,
@@ -240,3 +241,7 @@ INSERT INTO blood_inventory (blood_barcode, component_id, order_id, date_of_stor
 INSERT INTO blood_inventory (blood_barcode, component_id, order_id, date_of_storage) VALUES (5, 1, 4, "2020-09-26");
 INSERT INTO blood_inventory (blood_barcode, component_id, order_id, date_of_storage) VALUES (5, 2, NULL, "2020-09-26");
 INSERT INTO blood_inventory (blood_barcode, component_id, order_id, date_of_storage) VALUES (5, 3, NULL, "2020-09-26");
+
+UPDATE blood_inventory
+    JOIN component ON blood_inventory.component_id = component.component_id
+SET date_of_expiry = date_of_storage + INTERVAL max_storage_duration DAY;

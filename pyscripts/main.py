@@ -61,8 +61,8 @@ def loop():
             "Get Donors who have Donated at a Particular Center",
             "Update Details of a Donor",
             "Remove a Donor",
-            "Delete Expired Samples from Inventory",
             "Delete Ordered Samples from Inventory",
+            "Delete Expired Samples from Inventory",
             "Quit"
         ]
 

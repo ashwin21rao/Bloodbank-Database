@@ -209,6 +209,15 @@ def addToInventory():
         cfg.db.commit()
         print(cfg.GREEN, "Insert successful", cfg.RESET, sep="")
 
+        # update blood inventory
+        SQL_query = "UPDATE blood_inventory " \
+                    "JOIN component ON blood_inventory.component_id = component.component_id " \
+                    "SET date_of_expiry = date_of_storage + INTERVAL max_storage_duration DAY " \
+                    "WHERE blood_inventory.blood_barcode = %s AND blood_inventory.component_id = %s"
+
+        cfg.cursor.execute(SQL_query, (inventory["barcode"], inventory["comp_id"]))
+        cfg.db.commit()
+
     except Exception as e:
         cfg.db.rollback()
         print(cfg.RED, "Failed to insert into database", cfg.RESET, sep="")

@@ -34,9 +34,7 @@ def removeOrderedSamplesFromInventory():
 
 def removeExpiredSamplesFromInventory():
     try:
-        SQL_query = "DELETE blood_inventory FROM blood_inventory " \
-                    "JOIN component ON blood_inventory.component_id = component.component_id " \
-                    "WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE()"
+        SQL_query = "DELETE FROM blood_inventory WHERE order_id IS NULL AND date_of_expiry < CURDATE()"
 
         cfg.cursor.execute(SQL_query)
         cfg.db.commit()

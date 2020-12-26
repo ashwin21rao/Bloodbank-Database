@@ -31,9 +31,8 @@ GROUP BY blood_type, component_type
 ORDER BY total_stock DESC;
 
 -- find samples in blood inventory which have expired
-SELECT blood_inventory.blood_barcode, blood_inventory.component_id, blood_inventory.date_of_storage, component.max_storage_duration FROM blood_inventory
-    JOIN component ON blood_inventory.component_id = component.component_id
-WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE();
+SELECT blood_barcode, component_id, date_of_storage, date_of_expiry FROM blood_inventory
+WHERE order_id IS NULL AND date_of_expiry < CURDATE();
 
 -- get donors in a specific age group
 SELECT * FROM donor WHERE TIMESTAMPDIFF(year, date_of_birth, CURDATE()) BETWEEN 20 AND 30;
@@ -97,6 +96,10 @@ VALUES (1, "B+", false, false, false, false, false, false, false);
 INSERT INTO blood_inventory (blood_barcode, component_id, order_id, date_of_storage)
 VALUES (2, 2, NULL, "2020-12-12");
 
+UPDATE blood_inventory
+    JOIN component ON blood_inventory.component_id = component.component_id
+SET date_of_expiry = date_of_storage + INTERVAL max_storage_duration DAY;
+
 -- add a hospital
 INSERT INTO hospital (name, address, email_id, phone_number)
 VALUES ("Apollo", "Michigan, #2092", "woppo@gmail.com", "435353453");
@@ -126,6 +129,4 @@ DELETE FROM donor WHERE donor_id = 1;
 DELETE FROM blood_inventory WHERE order_id IS NOT NULL;
 
 -- delete expired samples from inventory
-DELETE blood_inventory FROM blood_inventory
-    JOIN component ON blood_inventory.component_id = component.component_id
-WHERE order_id IS NULL AND date_of_storage + INTERVAL max_storage_duration DAY < CURDATE();
+DELETE FROM blood_inventory WHERE order_id IS NULL AND date_of_expiry < CURDATE();
