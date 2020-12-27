@@ -15,6 +15,10 @@ SELECT * FROM blood_inventory ORDER BY date_of_storage;
 -- get orders on a particular date
 SELECT * FROM orders WHERE date_of_order = "2020/12/1";
 
+-- get details of a particular order
+SELECT * FROM orders WHERE order_id = 2
+SELECT * FROM order_components WHERE order_id = 2
+
 -- find most commonly ordered blood type and component type
 SELECT blood_type, component_type, COUNT(*) AS total_orders FROM blood_inventory
     JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode

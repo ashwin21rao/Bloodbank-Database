@@ -64,6 +64,28 @@ def getDailyOrders():
         print(cfg.RED, "ERROR>>>>>>>>>>>>> ", e, cfg.RESET, sep="")
 
 
+def getOrderDetails():
+    try:
+        order_id = int(validateInput("Order ID", "Integer"))
+        SQL_query = "SELECT * FROM orders WHERE order_id = %s"
+
+        cfg.cursor.execute(SQL_query, (order_id))
+        table = from_db_cursor(cfg.cursor)
+        table.align = "r"
+        print(table)
+
+        SQL_query = "SELECT * FROM order_components WHERE order_id = %s"
+
+        cfg.cursor.execute(SQL_query, (order_id))
+        table = from_db_cursor(cfg.cursor)
+        table.align = "r"
+        print(table)
+
+    except Exception as e:
+        print(cfg.RED, "Query failed", cfg.RESET, sep="")
+        print(cfg.RED, "ERROR>>>>>>>>>>>>> ", e, cfg.RESET, sep="")
+
+
 def getDonorsByAge():
     try:
         lower_age = int(validateInput("Lower Age", "Integer"))

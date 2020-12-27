@@ -604,6 +604,28 @@ def getDailyOrders():
         print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
 
 
+def getOrderDetails():
+    try:
+        order_id = int(validateInput("Order ID", "Integer"))
+        SQL_query = "SELECT * FROM orders WHERE order_id = %s"
+
+        cursor.execute(SQL_query, (order_id))
+        table = from_db_cursor(cursor)
+        table.align = "r"
+        print(table)
+
+        SQL_query = "SELECT * FROM order_components WHERE order_id = %s"
+
+        cursor.execute(SQL_query, (order_id))
+        table = from_db_cursor(cursor)
+        table.align = "r"
+        print(table)
+
+    except Exception as e:
+        print(RED, "Query failed", RESET, sep="")
+        print(RED, "ERROR>>>>>>>>>>>>> ", e, RESET, sep="")
+
+
 def getDonorsByAge():
     try:
         lower_age = int(validateInput("Lower Age", "Integer"))
@@ -797,7 +819,6 @@ def loop():
             "Get Blood Donations with a Specific Test Result",
             "Generate Blood Inventory Report",
             "Find Samples in Blood Inventory which have Expired",
-            "Get Orders on a Particular Date",
             "Find Most Commonly Ordered Blood Type and Component Type",
             "Find Total Stock of Each Blood Type and Component Type",
             "Get Donors in a Specific Age Group",
@@ -806,6 +827,8 @@ def loop():
             "Get Donors Registered by a Particular Employee",
             "Get Donors Registered at a Particular Center",
             "Get Donors who have Donated at a Particular Center",
+            "Get Orders on a Particular Date",
+            "Get Details of a Particular Order",
             "Update Details of a Donor",
             "Remove a Donor",
             "Delete Ordered Samples from Inventory",
@@ -816,7 +839,7 @@ def loop():
 
         for i in range(0, len(options)):
             print(f'{i + 1}. {options[i]}')
-            if i+1 in [8, 22, 27, 28]:
+            if i+1 in [8, 23, 28, 29]:
                 print("------------------------------------------------------------")
         try:
             choice = int(input("Enter choice> "))
@@ -828,7 +851,7 @@ def loop():
 
         sp.call('clear', shell=True)
 
-        if choice == 28:
+        if choice == 29:
             break
         else:
             if choice == 1:
@@ -858,32 +881,34 @@ def loop():
             elif choice == 13:
                 findExpiredBlood()
             elif choice == 14:
-                getDailyOrders()
-            elif choice == 15:
                 findCommonlyOrderedBloodTypes()
-            elif choice == 16:
+            elif choice == 15:
                 findTotalStock()
-            elif choice == 17:
+            elif choice == 16:
                 getDonorsByAge()
-            elif choice == 18:
+            elif choice == 17:
                 getDonorsFromArea()
-            elif choice == 19:
+            elif choice == 18:
                 getDonorsFromBloodType()
-            elif choice == 20:
+            elif choice == 19:
                 getDonorsFromEmployee()
-            elif choice == 21:
+            elif choice == 20:
                 getDonorsRegisteredAtCenter()
-            elif choice == 22:
+            elif choice == 21:
                 getDonorsDonatedAtCenter()
+            elif choice == 22:
+                getDailyOrders()
             elif choice == 23:
-                updateDonorDetails()
+                getOrderDetails()
             elif choice == 24:
-                removeDonor()
+                updateDonorDetails()
             elif choice == 25:
-                removeOrderedSamplesFromInventory()
+                removeDonor()
             elif choice == 26:
-                removeExpiredSamplesFromInventory()
+                removeOrderedSamplesFromInventory()
             elif choice == 27:
+                removeExpiredSamplesFromInventory()
+            elif choice == 28:
                 removeDiseasedBlood()
             else:
                 print(RED, "Error: Invalid Choice", RESET, sep="")
