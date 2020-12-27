@@ -358,7 +358,8 @@ def placeOrder():
                         "JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode " \
                         "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
                         "JOIN component ON blood_inventory.component_id = component.component_id " \
-                        "WHERE order_id IS NULL AND test_result.blood_type = %s AND component.component_type = %s"
+                        "WHERE order_id IS NULL AND date_of_expiry >= CURDATE() " \
+                        "AND test_result.blood_type = %s AND component.component_type = %s"
 
             dict_cursor.execute(SQL_query, (order["b_type"], order["c_type"]))
             stock = dict_cursor.fetchone()["stock"]
@@ -399,7 +400,8 @@ def placeOrder():
                                 "JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode " \
                                 "JOIN test_result ON blood.blood_barcode = test_result.blood_barcode " \
                                 "JOIN component ON blood_inventory.component_id = component.component_id " \
-                                "WHERE order_id IS NULL AND test_result.blood_type = %s AND component.component_type = %s " \
+                                "WHERE order_id IS NULL AND date_of_expiry >= CURDATE() " \
+                                "AND test_result.blood_type = %s AND component.component_type = %s " \
                                 "ORDER BY date_of_expiry"
 
                     dict_cursor.execute(SQL_query, (order["b_type"], order["c_type"]))

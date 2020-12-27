@@ -144,14 +144,16 @@ SELECT COUNT(*) FROM blood_inventory
     JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode
     JOIN test_result ON blood.blood_barcode = test_result.blood_barcode
     JOIN component ON blood_inventory.component_id = component.component_id
-WHERE order_id IS NULL AND test_result.blood_type = "A+" AND component.component_type = "RBC";
+WHERE order_id IS NULL AND date_of_expiry >= CURDATE()
+    AND test_result.blood_type = "A+" AND component.component_type = "RBC";
 
 -- generate list of requested items in blood inventory
 SELECT blood_inventory.blood_barcode, blood_inventory.component_id FROM blood_inventory
     JOIN blood ON blood_inventory.blood_barcode = blood.blood_barcode
     JOIN test_result ON blood.blood_barcode = test_result.blood_barcode
     JOIN component ON blood_inventory.component_id = component.component_id
-WHERE order_id IS NULL AND test_result.blood_type = "B+" AND component.component_type = "Platelets"
+WHERE order_id IS NULL AND date_of_expiry >= CURDATE()
+    AND test_result.blood_type = "B+" AND component.component_type = "Platelets"
 ORDER BY date_of_expiry;
 
 -- update order id of an item which is ordered
